@@ -1,0 +1,255 @@
+name: dunker-separado
+services:
+  caddy:
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    security_opt:
+    - no-new-privileges:true
+    image: caddy:2.11.4
+    command:
+    - caddy
+    - run
+    - --config=/etc/dunker/caddy/Caddyfile
+    - --adapter=caddyfile
+    environment:
+      MONITOR_HOST: ${MONITOR_HOST}
+      GF_UPSTREAM: grafana:3000
+      PROM_UPSTREAM: prometheus:9090
+      LOKI_UPSTREAM: loki:3100
+      XDG_DATA_HOME: /data
+      XDG_CONFIG_HOME: /data/caddy-config
+      ADMIN_UPSTREAM: admin:8080
+    ports:
+    - ${ACCESS_BIND:-0.0.0.0}:${ACCESS_PORT:-8443}:8443
+    volumes:
+    - ./config:/etc/dunker:ro
+    - caddy_data:/data
+    depends_on:
+    - grafana
+    - prometheus
+    - loki
+    - admin
+  grafana:
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    security_opt:
+    - no-new-privileges:true
+    image: grafana/grafana:13.2.2
+    ports:
+    - 127.0.0.1:3000:3000
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /etc/dunker/secrets/grafana_admin_password
+      GF_SECURITY_SECRET_KEY__FILE: /etc/dunker/secrets/grafana_secret_key
+      GF_SERVER_ROOT_URL: '%(protocol)s://%(domain)s:%(http_port)s/'
+      GF_PATHS_PROVISIONING: /etc/dunker/grafana/provisioning
+      GF_AUTH_ANONYMOUS_ENABLED: 'false'
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
+      GF_ANALYTICS_CHECK_FOR_UPDATES: 'false'
+      GF_NEWS_NEWS_FEED_ENABLED: 'false'
+      GF_PLUGINS_PREINSTALL_DISABLED: 'true'
+      PROM_URL: http://prometheus:9090
+      LOKI_URL: http://loki:3100
+      AM_URL: http://alertmanager:9093
+      GF_SERVER_ENFORCE_DOMAIN: 'false'
+    volumes:
+    - ./config:/etc/dunker:ro
+    - grafana_data:/var/lib/grafana
+    depends_on:
+    - prometheus
+    - loki
+    - alertmanager
+  prometheus:
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    security_opt:
+    - no-new-privileges:true
+    image: prom/prometheus:v3.13.3
+    command:
+    - --config.file=/etc/dunker/prometheus/separado.yml
+    - --storage.tsdb.path=/prometheus
+    - --storage.tsdb.retention.time=30d
+    - --storage.tsdb.retention.size=20GB
+    - --web.enable-remote-write-receiver
+    volumes:
+    - ./config:/etc/dunker:ro
+    - prometheus_data:/prometheus
+    ports:
+    - 127.0.0.1:9090:9090
+  alertmanager:
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    security_opt:
+    - no-new-privileges:true
+    image: prom/alertmanager:v0.34.1
+    command:
+    - --config.file=/etc/dunker/alertmanager.yml
+    - --storage.path=/alertmanager
+    - --cluster.listen-address=
+    volumes:
+    - ./config:/etc/dunker:ro
+    - alertmanager_data:/alertmanager
+    ports:
+    - 127.0.0.1:9093:9093
+  blackbox:
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    security_opt:
+    - no-new-privileges:true
+    image: prom/blackbox-exporter:v0.28.0
+    command:
+    - --config.file=/etc/dunker/blackbox.yml
+    cap_add:
+    - NET_RAW
+    cap_drop:
+    - ALL
+    user: '0'
+    volumes: &id001
+    - ./config:/etc/dunker:ro
+  snmp:
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    security_opt:
+    - no-new-privileges:true
+    image: prom/snmp-exporter:v0.30.1
+    command:
+    - --config.file=/etc/dunker/snmp.yml
+    volumes: *id001
+  ping:
+    restart: unless-stopped
+    logging: &id002
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    security_opt:
+    - no-new-privileges:true
+    image: dunker/ping-exporter:1.1.0
+    build:
+      context: .
+      dockerfile: Dockerfile.ping
+    cap_drop:
+    - ALL
+    cap_add:
+    - NET_RAW
+    volumes: *id001
+    healthcheck:
+      test:
+      - CMD
+      - python3
+      - -c
+      - import urllib.request; urllib.request.urlopen("http://127.0.0.1:9427/healthz")
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  loki:
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    security_opt:
+    - no-new-privileges:true
+    image: grafana/loki:3.7.8
+    command:
+    - -config.file=/etc/dunker/loki-separado.yml
+    volumes:
+    - ./config:/etc/dunker:ro
+    - loki_data:/loki
+  alloy:
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    security_opt:
+    - no-new-privileges:true
+    image: grafana/alloy:v1.20.1
+    command:
+    - run
+    - --server.http.listen-addr=0.0.0.0:12345
+    - --storage.path=/var/lib/alloy/data
+    - /etc/dunker/alloy/central.alloy
+    environment:
+      VM_NAME: ${VM_NAME}
+      PROM_WRITE_URL: http://prometheus:9090/api/v1/write
+      LOKI_WRITE_URL: http://loki:3100/loki/api/v1/push
+    volumes:
+    - ./config:/etc/dunker:ro
+    - alloy_data:/var/lib/alloy/data
+    - /proc:/host/proc:ro
+    - /sys:/host/sys:ro
+    ports:
+    - ${SYSLOG_BIND:-127.0.0.1}:1514:1514/tcp
+    - ${SYSLOG_BIND:-127.0.0.1}:1514:1514/udp
+    depends_on:
+    - prometheus
+    - loki
+  admin:
+    image: dunker/ping-exporter:1.1.0
+    build:
+      context: .
+      dockerfile: Dockerfile.ping
+    entrypoint:
+    - python3
+    - /opt/dunker/admin_monitor.py
+    restart: unless-stopped
+    environment:
+      DNK_ADMIN_DATA: /etc/dunker/targets
+      ADMIN_PASSWORD_FILE: /etc/dunker/secrets/grafana_admin_password
+      BLACKBOX_URL: http://blackbox:9115
+    volumes:
+    - ./config:/etc/dunker:ro
+    - ./config/targets:/etc/dunker/targets:rw
+    depends_on:
+    - blackbox
+    security_opt:
+    - no-new-privileges:true
+    cap_drop:
+    - ALL
+    logging: *id002
+    cap_add:
+    - NET_RAW
+    healthcheck:
+      test:
+      - CMD
+      - python3
+      - -c
+      - import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/healthz")
+      interval: 30s
+      timeout: 5s
+      retries: 3
+volumes:
+  caddy_data: {}
+  grafana_data: {}
+  prometheus_data: {}
+  alertmanager_data: {}
+  loki_data: {}
+  alloy_data: {}

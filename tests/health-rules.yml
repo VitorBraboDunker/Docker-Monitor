@@ -1,0 +1,26 @@
+rule_files:
+- ../config/prometheus/rules.yml
+evaluation_interval: 30s
+tests:
+- interval: 30s
+  input_series:
+  - series: dnk_target_expected{Cliente="Saudavel",Unidade="SP",Provedor="Teste",instance="Saudavel",tipo="icmp"}
+    values: 1+0x20
+  - series: dnk_target_expected{Cliente="Caido",Unidade="SP",Provedor="Teste",instance="Caido",tipo="icmp"}
+    values: 1+0x20
+  - series: dnk_target_expected{Cliente="SemAgente",Unidade="SP",Provedor="Teste",instance="SemAgente",tipo="windows"}
+    values: 1+0x20
+  - series: probe_success{Cliente="Saudavel",Unidade="SP",Provedor="Teste",instance="Saudavel",job="blackbox_icmp"}
+    values: 1+0x20
+  - series: probe_success{Cliente="Caido",Unidade="SP",Provedor="Teste",instance="Caido",job="blackbox_icmp"}
+    values: 0+0x20
+  promql_expr_test:
+  - expr: dnk:client_health
+    eval_time: 5m
+    exp_samples:
+    - labels: dnk:client_health{Cliente="Saudavel"}
+      value: 0
+    - labels: dnk:client_health{Cliente="Caido"}
+      value: 3
+    - labels: dnk:client_health{Cliente="SemAgente"}
+      value: 1

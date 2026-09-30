@@ -1,0 +1,25 @@
+FROM grafana/grafana:13.2.2@sha256:9924c7fe0effe4a5fea08b3451905de54f09fde9d1589463a5f2d02d9ec158bc AS grafana
+FROM prom/prometheus:v3.13.3@sha256:595c907995955f2d5fda19fae66392680921d9501cad0be5270b3fee959780b1 AS prometheus
+FROM prom/alertmanager:v0.34.1@sha256:84967b9b7ba45e38a9278d3e594305f43d4993c310df3905b51138b816c365f3 AS alertmanager
+FROM prom/blackbox-exporter:v0.28.0@sha256:43027b43fb785b7c5adc53bd3b5dbc1a258270a2e8aff24f477b45c4e38dac68 AS blackbox
+FROM prom/snmp-exporter:v0.30.1@sha256:9ad5309a6deb7cbe94b7bc5e5dfa8db7b682c6a3c0fa7c029a7e827e505ef43c AS snmp
+FROM grafana/loki:3.7.8@sha256:81a6802ec4bd1b88c564494f06376889ed022998a188826190d26d2754ac2aae AS loki
+FROM caddy:2.11.4@sha256:040e9f7480b80b6d4a7e5013a21159b950a63dcbdb956e38abe2387fb28d9ec0 AS caddy
+FROM python:3.13-slim-bookworm@sha256:3e2de9c40ca4e3d73240059f9d48baff27908f10293e985a2f382a0378e6df4a AS python
+FROM grafana/alloy:v1.20.1@sha256:5133c159d34c7acf37a1b6d91682abcb6b28b2a29bae152ff5cf4753296f956c
+USER 0
+COPY --from=python /usr/local /usr/local
+COPY --from=grafana /usr/share/grafana /opt/grafana
+COPY --from=prometheus /bin/prometheus /bin/promtool /usr/local/bin/
+COPY --from=alertmanager /bin/alertmanager /bin/amtool /usr/local/bin/
+COPY --from=blackbox /bin/blackbox_exporter /usr/local/bin/
+COPY --from=snmp /bin/snmp_exporter /usr/local/bin/
+COPY --from=loki /usr/bin/loki /usr/local/bin/
+COPY --from=caddy /usr/bin/caddy /usr/local/bin/
+COPY runtime /opt/dunker/
+ENV PATH=/usr/local/bin:/usr/local/sbin:/usr/sbin:/usr/bin:/sbin:/bin PYTHONUNBUFFERED=1
+WORKDIR /opt/dunker
+EXPOSE 8443 1514/tcp 1514/udp
+STOPSIGNAL SIGTERM
+ENTRYPOINT ["python3", "/opt/dunker/supervise.py"]
+CMD []

@@ -1,0 +1,91 @@
+logging {
+	level = "info"
+}
+
+prometheus.exporter.unix "vm" {
+	procfs_path    = "/host/proc"
+	sysfs_path     = "/host/sys"
+	rootfs_path    = "/host/root"
+	set_collectors = ["cpu", "meminfo", "filesystem", "loadavg", "os", "uname", "time", "stat", "diskstats"]
+}
+
+discovery.relabel "vm" {
+	targets = prometheus.exporter.unix.vm.targets
+
+	rule {
+		target_label = "instance"
+		replacement  = sys.env("VM_NAME")
+	}
+
+	rule {
+		target_label = "Cliente"
+		replacement  = "DunkerLAB"
+	}
+
+	rule {
+		target_label = "Unidade"
+		replacement  = "VM"
+	}
+
+	rule {
+		target_label = "Provedor"
+		replacement  = "Interno"
+	}
+}
+
+prometheus.scrape "vm" {
+	targets         = discovery.relabel.vm.output
+	job_name        = "integrations/unix"
+	scrape_interval = "30s"
+	forward_to      = [prometheus.remote_write.local.receiver]
+}
+
+prometheus.remote_write "local" {
+	endpoint {
+		url = sys.env("PROM_WRITE_URL")
+	}
+}
+
+loki.relabel "syslog" {
+	forward_to = []
+
+	rule {
+		source_labels = ["__syslog_message_hostname"]
+		target_label  = "hostname"
+	}
+
+	rule {
+		source_labels = ["__syslog_connection_ip_address"]
+		target_label  = "origem"
+	}
+
+	rule {
+		target_label = "Cliente"
+		replacement  = "SemMapeamento"
+	}
+	// Adicione regras por IP de origem para associar eventos ao cliente.
+}
+
+loki.source.syslog "routers" {
+	listener {
+		address       = "0.0.0.0:1514"
+		protocol      = "tcp"
+		syslog_format = "rfc3164"
+		labels        = {job = "syslog", transporte = "tcp"}
+	}
+
+	listener {
+		address       = "0.0.0.0:1514"
+		protocol      = "udp"
+		syslog_format = "rfc3164"
+		labels        = {job = "syslog", transporte = "udp"}
+	}
+	relabel_rules = loki.relabel.syslog.rules
+	forward_to    = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+	endpoint {
+		url = sys.env("LOKI_WRITE_URL")
+	}
+}

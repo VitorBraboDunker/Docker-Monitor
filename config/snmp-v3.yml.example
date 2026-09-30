@@ -1,0 +1,10 @@
+# Copie este perfil para auths no snmp.yml local, se usar SNMP v3.
+auths:
+  dunker_v3:
+    version: 3
+    username: PREENCHA_USUARIO_SNMP
+    security_level: authPriv
+    password: PREENCHA_SENHA_AUTH_SNMP
+    auth_protocol: SHA
+    priv_password: PREENCHA_SENHA_PRIV_SNMP
+    priv_protocol: AES

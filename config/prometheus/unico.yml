@@ -1,0 +1,127 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+  external_labels:
+    monitor: dunker-local
+rule_files:
+- /etc/dunker/prometheus/rules.yml
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - 127.0.0.1:9093
+scrape_configs:
+- job_name: prometheus
+  static_configs:
+  - targets:
+    - 127.0.0.1:9090
+- job_name: dunker_inventory
+  honor_labels: true
+  static_configs:
+  - targets:
+    - 127.0.0.1:9427
+- job_name: blackbox_icmp
+  metrics_path: /probe
+  params:
+    module:
+    - icmp_ipv4
+  scrape_interval: 15s
+  scrape_timeout: 7s
+  file_sd_configs:
+  - files:
+    - /etc/dunker/targets/icmp.json
+    refresh_interval: 30s
+  relabel_configs:
+  - source_labels:
+    - __address__
+    target_label: __param_target
+  - source_labels:
+    - __param_target
+    target_label: instance
+  - target_label: __address__
+    replacement: 127.0.0.1:9115
+- job_name: blackbox_http
+  metrics_path: /probe
+  params:
+    module:
+    - http_2xx
+  scrape_interval: 15s
+  scrape_timeout: 7s
+  file_sd_configs:
+  - files:
+    - /etc/dunker/targets/http.json
+    refresh_interval: 30s
+  relabel_configs:
+  - source_labels:
+    - __address__
+    target_label: __param_target
+  - source_labels:
+    - __param_target
+    target_label: instance
+  - target_label: __address__
+    replacement: 127.0.0.1:9115
+- job_name: blackbox_tcp
+  metrics_path: /probe
+  params:
+    module:
+    - tcp_connect
+  scrape_interval: 15s
+  scrape_timeout: 7s
+  file_sd_configs:
+  - files:
+    - /etc/dunker/targets/tcp.json
+    refresh_interval: 30s
+  relabel_configs:
+  - source_labels:
+    - __address__
+    target_label: __param_target
+  - source_labels:
+    - __param_target
+    target_label: instance
+  - target_label: __address__
+    replacement: 127.0.0.1:9115
+- job_name: snmp
+  metrics_path: /snmp
+  scrape_interval: 60s
+  scrape_timeout: 50s
+  file_sd_configs:
+  - files:
+    - /etc/dunker/targets/snmp.json
+    refresh_interval: 30s
+  relabel_configs:
+  - source_labels:
+    - __address__
+    target_label: __param_target
+  - source_labels:
+    - __param_target
+    target_label: instance
+  - source_labels:
+    - snmp_auth
+    target_label: __param_auth
+  - source_labels:
+    - snmp_module
+    target_label: __param_module
+  - target_label: __address__
+    replacement: 127.0.0.1:9116
+  - action: labeldrop
+    regex: snmp_auth|snmp_module
+- job_name: exporter_blackbox
+  static_configs:
+  - targets:
+    - 127.0.0.1:9115
+- job_name: exporter_snmp
+  static_configs:
+  - targets:
+    - 127.0.0.1:9116
+- job_name: exporter_alloy
+  static_configs:
+  - targets:
+    - 127.0.0.1:12345
+- job_name: exporter_loki
+  static_configs:
+  - targets:
+    - 127.0.0.1:3100
+- job_name: exporter_alertmanager
+  static_configs:
+  - targets:
+    - 127.0.0.1:9093

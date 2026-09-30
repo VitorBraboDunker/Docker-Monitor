@@ -1,0 +1,47 @@
+name: dunker-unico
+services:
+  monitor:
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    security_opt:
+    - no-new-privileges:true
+    image: dunker/monitor-all-in-one:1.1.0
+    build:
+      context: .
+      dockerfile: Dockerfile.unico
+    environment:
+      MONITOR_HOST: ${MONITOR_HOST}
+      VM_NAME: ${VM_NAME}
+    cap_drop:
+    - ALL
+    cap_add:
+    - NET_RAW
+    ports:
+    - ${ACCESS_BIND:-0.0.0.0}:${ACCESS_PORT:-8443}:8443
+    - 127.0.0.1:9090:9090
+    - 127.0.0.1:9093:9093
+    - ${SYSLOG_BIND:-127.0.0.1}:1514:1514/tcp
+    - ${SYSLOG_BIND:-127.0.0.1}:1514:1514/udp
+    volumes:
+    - ./config:/etc/dunker:ro
+    - monitor_data:/data
+    - /proc:/host/proc:ro
+    - /sys:/host/sys:ro
+    - /:/host/root:ro,rslave
+    - ./config/targets:/etc/dunker/targets:rw
+    stop_grace_period: 40s
+    healthcheck:
+      test:
+      - CMD
+      - python3
+      - /opt/dunker/health.py
+      interval: 30s
+      timeout: 30s
+      start_period: 120s
+      retries: 3
+volumes:
+  monitor_data: {}

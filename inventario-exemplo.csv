@@ -1,0 +1,7 @@
+tipo;Cliente;Unidade;Provedor;instance;auth;module
+icmp;ClienteExemplo;SP;Operadora;192.0.2.10;;
+snmp;ClienteExemplo;SP;Operadora;192.0.2.10;dunker_v2;if_mib,system
+windows;ClienteExemplo;SP;Interno;SRV-EXEMPLO;;
+linux;ClienteExemplo;SP;Interno;srv-linux-exemplo;;
+http;ClienteExemplo;SP;Interno;https://exemplo.invalid/;;
+tcp;ClienteExemplo;SP;Interno;192.0.2.20:3389;;

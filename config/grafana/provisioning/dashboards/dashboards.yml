@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+- name: Dunker Monitor
+  orgId: 1
+  folder: Dunker Monitor
+  type: file
+  allowUiUpdates: true
+  updateIntervalSeconds: 30
+  options:
+    path: /etc/dunker/grafana/dashboards

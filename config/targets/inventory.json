@@ -1,0 +1,36 @@
+[
+  {
+    "tipo": "icmp",
+    "enabled": true,
+    "interval_seconds": 30,
+    "timeout_seconds": 5.0,
+    "packet_count": 5,
+    "packet_interval_seconds": 1.0,
+    "latency_warning_ms": 100.0,
+    "loss_warning_percent": 5.0,
+    "criticality": "alta",
+    "Cliente": "DunkerLAB",
+    "Unidade": "VM",
+    "Provedor": "Autoteste",
+    "instance": "127.0.0.1",
+    "name": "127.0.0.1",
+    "id": "d251f506-3af6-4b83-abb4-40911ae96c8b"
+  },
+  {
+    "tipo": "icmp",
+    "enabled": true,
+    "interval_seconds": 30,
+    "timeout_seconds": 5.0,
+    "packet_count": 5,
+    "packet_interval_seconds": 1.0,
+    "latency_warning_ms": 100.0,
+    "loss_warning_percent": 5.0,
+    "criticality": "alta",
+    "Cliente": "DunkerIT",
+    "Unidade": "Matriz",
+    "Provedor": "Cloudflare",
+    "instance": "1.1.1.1",
+    "name": "1.1.1.1",
+    "id": "8ed93c00-202a-489d-b8da-76a34f9db292"
+  }
+]

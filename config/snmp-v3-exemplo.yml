@@ -1,0 +1,9 @@
+# Modelo para adicionar dentro de auths: em config/snmp.yml.
+dunker_v3:
+  version: 3
+  username: monitoramento
+  security_level: authPriv
+  password: TROQUE_SENHA_AUTH
+  auth_protocol: SHA
+  priv_password: TROQUE_SENHA_PRIV
+  priv_protocol: AES

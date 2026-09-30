@@ -1,0 +1,78 @@
+# Variáveis locais (versionar apenas exemplos)
+.env
+.env.*
+*.env
+
+# Senhas e credenciais operacionais
+config/secrets/*
+ACESSOS*.txt
+**/ACESSOS*.txt
+**/credentials.json
+**/credentials.*.json
+**/secrets.json
+**/secrets.yaml
+**/secrets.yml
+**/*password*
+**/*senha*
+**/*token*.txt
+**/*token*.json
+**/*secret_key*
+.netrc
+.npmrc
+.pypirc
+**/id_rsa*
+**/id_ed25519*
+
+# Configurações que contêm comunidade SNMP ou hash de autenticação
+config/snmp.yml
+config/caddy/Caddyfile
+
+# Certificados, chaves e bundles privados
+certs/
+*.crt
+*.cer
+*.key
+*.pem
+*.pfx
+*.p12
+*.jks
+*.keystore
+
+# Agentes gerados incluem senhas e podem incluir tokens
+agents/*/
+
+# Dados e backups podem conter credenciais
+backups/
+backup/
+data/
+volumes/
+grafana-data/
+prometheus-data/
+loki-data/
+caddy-data/
+*.bak
+*.db
+*.sqlite
+*.sqlite3
+*.tar
+*.tar.gz
+*.zip
+
+# Logs, caches e ambiente local
+logs/
+*.log
+__pycache__/
+*.pyc
+.venv/
+venv/
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+tmp/
+temp/
+
+# Exemplos sem credenciais reais podem ser versionados
+!*.example
+!**/*.example
+!.env.example

@@ -1,0 +1,35 @@
+{
+	admin off
+	skip_install_trust
+	auto_https disable_redirects
+}
+http://:8443 {
+	
+	redir /monitoramento /monitoramento/ 308
+	handle_path /monitoramento/* {
+		reverse_proxy {$ADMIN_UPSTREAM}
+	}
+	handle /api/v1/write {
+		basic_auth {
+			alloy_ingest  PREENCHA_HASH_BCRYPT_DA_SENHA_INGESTAO
+		}
+		@notpost not method POST
+		respond @notpost 405
+		reverse_proxy {$PROM_UPSTREAM} {
+			header_up -Authorization
+		}
+	}
+	handle /loki/api/v1/push {
+		basic_auth {
+			alloy_ingest  PREENCHA_HASH_BCRYPT_DA_SENHA_INGESTAO
+		}
+		@notpostlog not method POST
+		respond @notpostlog 405
+		reverse_proxy {$LOKI_UPSTREAM} {
+			header_up -Authorization
+		}
+	}
+	handle {
+		reverse_proxy {$GF_UPSTREAM}
+	}
+}

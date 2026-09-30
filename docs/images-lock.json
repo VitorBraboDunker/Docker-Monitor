@@ -1,0 +1,65 @@
+[
+  {
+    "name": "alertmanager",
+    "image": "prom/alertmanager:v0.34.1",
+    "digest": "sha256:84967b9b7ba45e38a9278d3e594305f43d4993c310df3905b51138b816c365f3",
+    "config_digest": "sha256:53622b714941158bc20cc92a7571aef515556218eef914b7b8ec5b2a0cb6f607",
+    "size_compressed": 40722956
+  },
+  {
+    "name": "alloy",
+    "image": "grafana/alloy:v1.20.1",
+    "digest": "sha256:5133c159d34c7acf37a1b6d91682abcb6b28b2a29bae152ff5cf4753296f956c",
+    "config_digest": "sha256:3c90607c975ecc9a69fe754a6e5105820f149007eb7a974a7ae6659faf76e952",
+    "size_compressed": 221523398
+  },
+  {
+    "name": "blackbox",
+    "image": "prom/blackbox-exporter:v0.28.0",
+    "digest": "sha256:43027b43fb785b7c5adc53bd3b5dbc1a258270a2e8aff24f477b45c4e38dac68",
+    "config_digest": "sha256:2bb660d6acaae57b2514fa4d114428b1670c6ef84eee07834710b26fc003796b",
+    "size_compressed": 17573251
+  },
+  {
+    "name": "caddy",
+    "image": "caddy:2.11.4",
+    "digest": "sha256:040e9f7480b80b6d4a7e5013a21159b950a63dcbdb956e38abe2387fb28d9ec0",
+    "config_digest": "sha256:2d8b1708bf8008935c0e2a9b6564f7f080cf9a73af3b27718f286230449b7101",
+    "size_compressed": 23935373
+  },
+  {
+    "name": "grafana",
+    "image": "grafana/grafana:13.2.2",
+    "digest": "sha256:9924c7fe0effe4a5fea08b3451905de54f09fde9d1589463a5f2d02d9ec158bc",
+    "config_digest": "sha256:747aaf291145d9a84a547f1fa4edf48697371db6ab386b81c95ad3a725c20f17",
+    "size_compressed": 475749054
+  },
+  {
+    "name": "loki",
+    "image": "grafana/loki:3.7.8",
+    "digest": "sha256:81a6802ec4bd1b88c564494f06376889ed022998a188826190d26d2754ac2aae",
+    "config_digest": "sha256:ceccdbc45e274f08eb23d6ca6e0b648921d580c592ab47b4304225c0f17a406a",
+    "size_compressed": 48003511
+  },
+  {
+    "name": "prometheus",
+    "image": "prom/prometheus:v3.13.3",
+    "digest": "sha256:595c907995955f2d5fda19fae66392680921d9501cad0be5270b3fee959780b1",
+    "config_digest": "sha256:7d467fbb6bbbd6a96d87a0e4b2ef53840ce11521af0a8c27b995daa82896a241",
+    "size_compressed": 106810851
+  },
+  {
+    "name": "python",
+    "image": "python:3.13-slim-bookworm",
+    "digest": "sha256:3e2de9c40ca4e3d73240059f9d48baff27908f10293e985a2f382a0378e6df4a",
+    "config_digest": "sha256:915835de46a63f9598442159437904042f1c69a9b41c4965fba1db9ceab66578",
+    "size_compressed": 44365264
+  },
+  {
+    "name": "snmp",
+    "image": "prom/snmp-exporter:v0.30.1",
+    "digest": "sha256:9ad5309a6deb7cbe94b7bc5e5dfa8db7b682c6a3c0fa7c029a7e827e505ef43c",
+    "config_digest": "sha256:199f2d15f2fcaf2ce8b8c7e2b731b50a287c79658925e1699a1f042636dac81e",
+    "size_compressed": 11049368
+  }
+]

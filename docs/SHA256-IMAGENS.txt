@@ -1,0 +1,2 @@
+5cca1d2e38579a3c60986906f488ac330e3904ea970146718f9dd5aca18feea9  dunker-monitor-separado-linux-amd64.tar.gz
+47f4994fc1ec168354deb90c11a26b8cd9b0ea377a233025aac3589615b57528  dunker-monitor-unico-linux-amd64.tar.gz

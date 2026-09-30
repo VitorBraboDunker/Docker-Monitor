@@ -1,0 +1,58 @@
+[
+  {
+    "test": "servi\u00e7o 3000",
+    "status": 200
+  },
+  {
+    "test": "servi\u00e7o 9090",
+    "status": 200
+  },
+  {
+    "test": "servi\u00e7o 9093",
+    "status": 200
+  },
+  {
+    "test": "servi\u00e7o 3100",
+    "status": 200
+  },
+  {
+    "test": "servi\u00e7o 9115",
+    "status": 200
+  },
+  {
+    "test": "servi\u00e7o 9116",
+    "status": 200
+  },
+  {
+    "test": "servi\u00e7o 9427",
+    "status": 200
+  },
+  {
+    "test": "servi\u00e7o 12345",
+    "status": 200
+  },
+  {
+    "test": "HTTPS CA validada",
+    "status": 200
+  },
+  {
+    "test": "dashboards provisionados",
+    "count": 5
+  },
+  {
+    "test": "rejeita sem senha /api/v1/write",
+    "status": 401
+  },
+  {
+    "test": "rejeita sem senha /loki/api/v1/push",
+    "status": 401
+  },
+  {
+    "test": "regras avaliadas",
+    "health": "ok"
+  },
+  {
+    "test": "Alloy -> Prometheus remote_write",
+    "received": true
+  }
+]

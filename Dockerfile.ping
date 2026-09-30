@@ -1,0 +1,5 @@
+FROM python:3.13-slim-bookworm@sha256:3e2de9c40ca4e3d73240059f9d48baff27908f10293e985a2f382a0378e6df4a
+COPY runtime/ping_exporter.py runtime/admin_monitor.py /opt/dunker/
+ENV PYTHONUNBUFFERED=1
+EXPOSE 9427
+ENTRYPOINT ["python3", "/opt/dunker/ping_exporter.py"]

@@ -1,0 +1,7 @@
+.env
+config/secrets
+config/snmp.yml
+certs
+backups
+*.tar*
+ACESSOS*

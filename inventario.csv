@@ -1,0 +1,3 @@
+tipo;Cliente;Unidade;Provedor;instance;auth;module
+icmp;DunkerLAB;VM;Autoteste;127.0.0.1;;
+icmp;DunkerIT;Matriz;Cloudflare;1.1.1.1;;

@@ -1,0 +1,121 @@
+{
+  "uid": "dnk-logs",
+  "title": "Dunker | Logs",
+  "schemaVersion": 39,
+  "version": 1,
+  "style": "dark",
+  "tags": [
+    "Dunker"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "Cliente",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": "label_values(dnk_target_expected, Cliente)",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "Unidade",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": "label_values(dnk_target_expected{Cliente=~\"$Cliente\"}, Unidade)",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      }
+    ]
+  },
+  "links": [
+    {
+      "type": "dashboards",
+      "tags": [
+        "Dunker"
+      ],
+      "asDropdown": true,
+      "includeVars": true,
+      "keepTime": true,
+      "title": "Painéis Dunker"
+    },
+    {
+      "title": "Cadastrar IPs / Pings",
+      "type": "link",
+      "url": "/monitoramento/",
+      "targetBlank": true,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": false
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Eventos de rede e servidores",
+      "type": "logs",
+      "datasource": {
+        "type": "loki",
+        "uid": "dnk-loki"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{Cliente=~\"$Cliente\"}",
+          "queryType": "range",
+          "datasource": {
+            "type": "loki",
+            "uid": "dnk-loki"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sem dados",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending",
+        "enableLogDetails": true
+      }
+    }
+  ]
+}
