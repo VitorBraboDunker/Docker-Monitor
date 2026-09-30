@@ -7,7 +7,7 @@ file="compose.$mode.yaml"
 out="$PWD/backups/$(date +%Y%m%d-%H%M%S)-$mode"
 mkdir -p "$out";chmod 700 "$out"
 if [[ "$mode" == separado ]];then image=grafana/grafana:13.2.2;volumes=(grafana_data prometheus_data alertmanager_data loki_data alloy_data caddy_data)
-else image=dunker/monitor-all-in-one:1.1.0;volumes=(monitor_data);fi
+else image=vitorbrabodunker/dunker-monitor-unico:1.2.0;volumes=(monitor_data);fi
 for volume in "${volumes[@]}";do docker volume inspect "dunker-${mode}_${volume}" >/dev/null;done
 echo 'Parando os serviços para uma cópia consistente...'
 docker compose -f "$file" stop

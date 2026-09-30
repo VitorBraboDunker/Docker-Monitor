@@ -39,7 +39,7 @@ if __name__=='__main__':
   for row in rows:
    if row['tipo']!=typ:continue
    labels={k:row[k] for k in ['Cliente','Unidade','Provedor']}
-   if typ=='icmp':labels.update(monitor_id=row['id'],monitor_name=row['name'],criticidade=row['criticality'])
+   if typ=='icmp':labels.update(monitor_id=row['id'],monitor_name=row['name'])
    if typ=='snmp':labels.update(snmp_auth=row['auth'],snmp_module=row['module'])
    targets.append({'targets':[row['instance']],'labels':labels})
   atomic(BASE/'config/targets'/f'{typ}.json',targets)

@@ -34,18 +34,23 @@ def probe(address,count=5,timeout=5.,packet_interval=1.):
 def inventory():
  with open(INVENTORY,encoding='utf-8') as f:return json.load(f)
 def label_string(row):
- values={k:row[k] for k in ['Cliente','Unidade','Provedor','instance','tipo']};values.update(monitor_id=row.get('id',''),monitor_name=row.get('name',row['instance']),criticidade=row.get('criticality','alta'))
+ values={k:row[k] for k in ['Cliente','Unidade','Provedor','instance','tipo']};values.update(monitor_id=row.get('id',''),monitor_name=row.get('name',row['instance']))
  return '{'+','.join(k+'='+json.dumps(str(v),ensure_ascii=False) for k,v in values.items())+'}'
 def row_id(row):return row.get('id') or '|'.join(str(row.get(k,'')) for k in ['Cliente','Unidade','Provedor','instance','tipo'])
 def probe_row(row):
- return probe(row['instance'],int(row.get('packet_count',5)),float(row.get('timeout_seconds',5)),float(row.get('packet_interval_seconds',1)))
+ if row['tipo']!='icmp':
+  from monitor_probes import probe_service
+  return probe_service(row)
+ result=probe(row['instance'],int(row.get('packet_count',5)),float(row.get('timeout_seconds',5)),float(row.get('packet_interval_seconds',1)))
+ result['check_success']=int(result['success']==1 and result['received']>0)
+ return result
 def collect():
  global LAST_ROUND,LAST_ERROR
  pending={}
  with futures.ThreadPoolExecutor(max_workers=32) as pool:
   while not STOP.is_set():
    try:
-    rows=[r for r in inventory() if r['tipo']=='icmp' and r.get('enabled',True)]
+    rows=[r for r in inventory() if r['tipo'] in ('icmp','http','tcp','dns') and r.get('enabled',True)]
     now=time.monotonic();active={row_id(r):r for r in rows}
     with LOCK:
      labels={label_string(r) for r in rows}
@@ -72,6 +77,8 @@ def render_metrics():
  try:rows=[r for r in inventory() if r.get('enabled',True)]
  except (OSError,ValueError):rows=[]
  out=['# TYPE dnk_target_expected gauge']+['dnk_target_expected'+label_string(r)+' 1' for r in rows]
+ out+=['# TYPE dnk_check_config_interval_seconds gauge']+['dnk_check_config_interval_seconds'+label_string(r)+' '+str(r.get('interval_seconds',30)) for r in rows if r.get('tipo') in ('icmp','http','tcp','dns')]
+ out+=['# TYPE dnk_check_config_stale_seconds gauge']+['dnk_check_config_stale_seconds'+label_string(r)+' '+str(2*float(r.get('interval_seconds',30))+max(float(r.get('timeout_seconds',5)),float(r.get('packet_interval_seconds',1)))*int(r.get('packet_count',5))+30) for r in rows if r.get('tipo') in ('icmp','http','tcp','dns')]
  config_fields={'interval_seconds':'interval_seconds','timeout_seconds':'timeout_seconds','packet_count':'packet_count','packet_interval_seconds':'packet_interval_seconds','latency_warning_ms':'latency_warning_milliseconds','loss_warning_percent':'loss_warning_percent'}
  for field,suffix in config_fields.items():
   name='dnk_ping_config_'+suffix;out+=['# TYPE '+name+' gauge']
@@ -80,7 +87,10 @@ def render_metrics():
  with LOCK:
   for field,suffix in fields.items():
    name='dnk_ping_'+suffix;out+=['# TYPE '+name+' gauge']
-   out += [name+labels+' '+('NaN' if isinstance(data[field],float) and math.isnan(data[field]) else str(data[field])) for labels,data in RESULTS.items()]
+   out += [name+labels+' '+('NaN' if isinstance(data[field],float) and math.isnan(data[field]) else str(data[field])) for labels,data in RESULTS.items() if field in data and 'sent' in data]
+  for field,name in [('success','dnk_check_success'),('duration','dnk_check_duration_seconds'),('timestamp','dnk_check_timestamp_seconds'),('http_status_code','dnk_check_http_status_code'),('dns_rcode','dnk_check_dns_rcode'),('dns_answers','dnk_check_dns_answers')]:
+   out.append('# TYPE '+name+' gauge')
+   out += [name+labels+' '+str(data.get('check_success',data[field]) if field=='success' else data[field]) for labels,data in RESULTS.items() if field in data]
   out+=['# TYPE dnk_ping_last_round_timestamp_seconds gauge','dnk_ping_last_round_timestamp_seconds '+str(LAST_ROUND),'# TYPE dnk_ping_config_error gauge','dnk_ping_config_error '+str(LAST_ERROR)]
  return ('\n'.join(out)+'\n').encode()
 class Handler(http.server.BaseHTTPRequestHandler):

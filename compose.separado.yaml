@@ -149,7 +149,7 @@ services:
         max-file: '3'
     security_opt:
     - no-new-privileges:true
-    image: dunker/ping-exporter:1.1.0
+    image: vitorbrabodunker/dunker-monitor-separado:1.2.0
     build:
       context: .
       dockerfile: Dockerfile.ping
@@ -213,7 +213,7 @@ services:
     - prometheus
     - loki
   admin:
-    image: dunker/ping-exporter:1.1.0
+    image: vitorbrabodunker/dunker-monitor-separado:1.2.0
     build:
       context: .
       dockerfile: Dockerfile.ping

@@ -34,7 +34,6 @@ DEFAULTS = {
     "packet_interval_seconds": 1,
     "latency_warning_ms": 100,
     "loss_warning_percent": 5,
-    "criticality": "alta",
 }
 
 
@@ -72,24 +71,20 @@ def atomic_json(path: Path, value) -> None:
             pass
 
 
+SUPPORTED = {'icmp', 'http', 'tcp', 'dns'}
+
 def persist(rows: list[dict]) -> None:
-    targets = []
-    for row in rows:
-        if row.get("tipo") != "icmp" or not row.get("enabled", True):
-            continue
-        targets.append({
-            "targets": [row["instance"]],
-            "labels": {
-                "Cliente": row["Cliente"],
-                "Unidade": row["Unidade"],
-                "Provedor": row["Provedor"],
-                "monitor_id": row["id"],
-                "monitor_name": row["name"],
-                "criticidade": row["criticality"],
-            },
-        })
     atomic_json(INVENTORY, rows)
-    atomic_json(ICMP_TARGETS, targets)
+    for kind in ('icmp', 'http', 'tcp'):
+        targets=[]
+        for row in rows:
+            if row.get('tipo') != kind or not row.get('enabled', True):continue
+            # Managed HTTP/TCP checks use the scheduled multiprotocol exporter.
+            if kind != 'icmp' and row.get('id'):continue
+            labels={key:row[key] for key in ('Cliente','Unidade','Provedor')}
+            if row.get('id'):labels.update(monitor_id=row['id'],monitor_name=row['name'])
+            targets.append({'targets':[row['instance']], 'labels':labels})
+        atomic_json(DATA_DIR / (kind+'.json'), targets)
 
 
 def bounded_number(value, label, minimum, maximum, integer=False):
@@ -111,7 +106,38 @@ def normalize(payload: dict, current: dict | None = None) -> dict:
     row["name"] = str(row.get("name", "")).strip()
     for field in ("Cliente", "Unidade", "Provedor"):
         row[field] = str(row.get(field, "")).strip()
-    row["instance"] = str(ipaddress.IPv4Address(str(row.get("instance", "")).strip()))
+    from monitor_probes import validate_host
+    kind = row.get('tipo', 'icmp')
+    if kind not in SUPPORTED:raise ValueError('Tipo de verificação inválido')
+    row['instance']=str(row.get('instance','')).strip()
+    if kind=='icmp':row['instance']=str(ipaddress.IPv4Address(row['instance']))
+    elif kind=='http':
+        url=urllib.parse.urlsplit(row['instance'])
+        if url.scheme not in ('http','https') or not url.hostname or url.username or url.password:
+            raise ValueError('Use uma URL HTTP/HTTPS sem credenciais no endereço')
+        validate_host(url.hostname)
+        if url.port is not None and not 1<=url.port<=65535:raise ValueError('Porta inválida')
+        row['http_method']=str(row.get('http_method','GET')).upper()
+        if row['http_method'] not in ('GET','HEAD'):raise ValueError('Método permitido: GET ou HEAD')
+        row['expected_status']=bounded_number(row.get('expected_status',0),'Código HTTP esperado',0,599,True)
+        if row['expected_status'] and row['expected_status']<100:raise ValueError('Código HTTP inválido')
+        row['follow_redirects']=row.get('follow_redirects',True)
+        if not isinstance(row['follow_redirects'],bool):raise ValueError('Redirecionamento deve ser verdadeiro ou falso')
+    elif kind=='tcp':
+        if row.get('tcp_host'):
+            host=validate_host(row['tcp_host']);port=row.get('tcp_port')
+        else:
+            host,sep,port=row['instance'].rpartition(':')
+            if not sep:raise ValueError('Informe host e porta TCP')
+            host=validate_host(host.strip('[]'))
+        row['tcp_host']=host;row['tcp_port']=bounded_number(port,'Porta TCP',1,65535,True)
+        row['instance']=f"[{host}]:{row['tcp_port']}" if ':' in host else f"{host}:{row['tcp_port']}"
+    else:
+        row['instance']=validate_host(row['instance'])
+        row['dns_name']=validate_host(row.get('dns_name',''))
+        row['dns_type']=str(row.get('dns_type','A')).upper()
+        if row['dns_type'] not in ('A','AAAA','CNAME','MX','TXT','NS'):raise ValueError('Tipo DNS inválido')
+        row['dns_port']=bounded_number(row.get('dns_port',53),'Porta DNS',1,65535,True)
     if not row["name"] or any(not row[x] for x in ("Cliente", "Unidade", "Provedor")):
         raise ValueError("Preencha nome, cliente, unidade e provedor")
     row["interval_seconds"] = bounded_number(row.get("interval_seconds"), "Frequência", 10, 3600, True)
@@ -123,15 +149,19 @@ def normalize(payload: dict, current: dict | None = None) -> dict:
     if not isinstance(row.get("enabled", True), bool):
         raise ValueError("Estado deve ser verdadeiro ou falso")
     row["enabled"] = row.get("enabled", True)
-    row["tipo"] = "icmp"
-    if row.get("criticality") not in {"baixa", "media", "alta", "critica"}:
-        raise ValueError("Criticidade inválida")
+    row["tipo"] = kind
+    row.pop("criticality", None)
     return row
 
 
 def test_target(payload: dict) -> dict:
     from ping_exporter import probe
-    address = str(ipaddress.IPv4Address(str(payload.get("instance", ""))))
+    row=normalize(payload)
+    if row['tipo']!='icmp':
+        from monitor_probes import probe_service
+        result=probe_service(row)
+        return dict(result,duration_ms=round(result['duration']*1000,2),tipo=row['tipo'])
+    address = row['instance']
     timeout = bounded_number(payload.get("timeout_seconds", 5), "Timeout", 1, 30)
     count = bounded_number(payload.get("packet_count", 5), "Pacotes", 1, 20, True)
     interval = bounded_number(payload.get("packet_interval_seconds", 1), "Intervalo", 0.1, 10)
@@ -143,47 +173,33 @@ def test_target(payload: dict) -> dict:
             "rtt_ms": round(result["rtt"] * 1000, 2) if result["received"] else None}
 
 
-PAGE = r'''<!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dunker Monitor — Cadastro</title>
-<style>
-:root{--navy:#122952;--ink:#1d1826;--blue:#2d6cdf;--green:#24c875;--red:#ef5350;--amber:#ffb020;--bg:#f4f7fb;--line:#dbe3ef}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#1c2940;font:14px Inter,Segoe UI,Arial,sans-serif}
-header{background:linear-gradient(115deg,var(--ink),var(--navy));color:#fff;padding:22px 28px;display:flex;justify-content:space-between;align-items:center}
-header h1{font-size:20px;margin:0}header p{opacity:.75;margin:5px 0 0}.wrap{max-width:1240px;margin:24px auto;padding:0 18px}
-.toolbar,.card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 4px 18px #17325a0c}.toolbar{padding:16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-button{border:0;border-radius:9px;padding:10px 14px;font-weight:650;cursor:pointer}.primary{background:var(--blue);color:white}.secondary{background:#eaf0fb;color:var(--navy)}.danger{background:#ffe8e8;color:#a21f1f}
-input,select{border:1px solid #cbd6e5;border-radius:8px;padding:10px;width:100%;background:#fff}.search{max-width:360px}.summary{margin-left:auto;color:#52657f}
-.card{margin-top:16px;overflow:hidden}table{border-collapse:collapse;width:100%}th,td{padding:13px 14px;border-bottom:1px solid #edf1f6;text-align:left;vertical-align:middle}th{background:#f8fafc;color:#64748b;font-size:12px;text-transform:uppercase}.empty{padding:42px;text-align:center;color:#718096}
-.pill{display:inline-block;border-radius:99px;padding:5px 9px;font-size:12px;font-weight:700}.on{background:#dcfce7;color:#176b3a}.off{background:#eef1f5;color:#596579}.critica{background:#fee2e2;color:#991b1b}.alta{background:#fff0db;color:#9a4b00}.media{background:#fff9ce;color:#7b6300}.baixa{background:#e0f2fe;color:#075985}
-.actions{display:flex;gap:6px}.actions button{padding:7px 9px}.modal{position:fixed;inset:0;background:#0b1220a8;display:none;align-items:center;justify-content:center;padding:18px}.modal.open{display:flex}.dialog{background:white;width:min(880px,100%);max-height:94vh;overflow:auto;border-radius:16px;padding:22px}.dialog h2{margin-top:0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.field label{display:block;font-weight:650;margin:0 0 6px}.field small{color:#708199}.wide{grid-column:span 3}.form-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.notice{background:#eaf2ff;border-left:4px solid var(--blue);padding:12px;border-radius:7px;margin:12px 0}.toast{position:fixed;right:20px;bottom:20px;background:#16243a;color:white;padding:13px 16px;border-radius:9px;display:none}.toast.show{display:block}
-@media(max-width:800px){.grid{grid-template-columns:1fr}.wide{grid-column:span 1}table,thead,tbody,tr,th,td{display:block}thead{display:none}tr{padding:10px;border-bottom:1px solid var(--line)}td{border:0;padding:5px 12px}.summary{margin-left:0}}
-</style></head><body>
-<header><div><h1>DUNKER IT · Monitoramento</h1><p>Cadastro visual de links e sondagens ICMP</p></div><div><a href="/" style="color:white">Voltar ao Grafana</a> · <span id="clock"></span></div></header>
-<main class="wrap"><div class="toolbar"><input class="search" id="search" placeholder="Pesquisar cliente, unidade, provedor ou IP"><button class="primary" onclick="openForm()">+ Novo monitor</button><button class="secondary" onclick="load()">Atualizar</button><span class="summary" id="summary"></span></div>
-<section class="card"><table><thead><tr><th>Monitor</th><th>Cliente / unidade</th><th>Destino</th><th>Coleta</th><th>Estado</th><th>Ações</th></tr></thead><tbody id="rows"></tbody></table><div class="empty" id="empty">Nenhum monitor cadastrado.</div></section></main>
-<div class="modal" id="modal"><form class="dialog" id="form"><h2 id="formTitle">Novo monitor de link</h2><div class="notice">O teste multipacote calcula perda e latência média. O Blackbox continuará fazendo a verificação rápida de disponibilidade.</div><input type="hidden" id="id"><div class="grid">
-<div class="field wide"><label>Nome do monitor</label><input id="name" required placeholder="Ex.: Onkos SP — Claro"></div>
-<div class="field"><label>Cliente</label><input id="Cliente" required></div><div class="field"><label>Unidade</label><input id="Unidade" required placeholder="Ex.: SP"></div><div class="field"><label>Provedor</label><input id="Provedor" required></div>
-<div class="field"><label>IP de destino (rede local ou público)</label><input id="instance" required placeholder="Ex.: 186.0.0.1"></div><div class="field"><label>Criticidade</label><select id="criticality"><option value="baixa">Baixa</option><option value="media">Média</option><option value="alta" selected>Alta</option><option value="critica">Crítica</option></select></div><div class="field"><label>Estado</label><select id="enabled"><option value="true">Ativo</option><option value="false">Pausado</option></select></div>
-<div class="field"><label>Executar a cada (segundos)</label><input id="interval_seconds" type="number" min="10" max="3600" value="30"><small>Mínimo: 10 segundos</small></div><div class="field"><label>Timeout por pacote (segundos)</label><input id="timeout_seconds" type="number" min="1" max="30" step="0.5" value="5"></div><div class="field"><label>Quantidade de pacotes</label><input id="packet_count" type="number" min="1" max="20" value="5"></div>
-<div class="field"><label>Intervalo entre pacotes (segundos)</label><input id="packet_interval_seconds" type="number" min="0.1" max="10" step="0.1" value="1"></div><div class="field"><label>Atenção: latência acima de (ms)</label><input id="latency_warning_ms" type="number" min="1" value="100"></div><div class="field"><label>Atenção: perda acima de (%)</label><input id="loss_warning_percent" type="number" min="0" max="100" step="0.1" value="5"></div>
-</div><div id="testResult"></div><div class="form-actions"><button type="button" class="secondary" onclick="closeForm()">Cancelar</button><button type="button" class="secondary" onclick="testNow()">Testar agora</button><button class="primary" type="submit">Salvar monitor</button></div></form></div><div class="toast" id="toast"></div>
+PAGE = r'''<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dunker · Verificações</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f3f6fb;color:#172b4d;font:14px 'Segoe UI',sans-serif}header{background:#122952;color:white;padding:24px}header h1{margin:0;font-size:22px}header a{color:white;float:right}main{max-width:1200px;margin:24px auto;padding:0 16px}.bar,.card{background:white;padding:18px;border:1px solid #dae3ef;border-radius:12px;margin-bottom:16px}.bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}input,select{padding:10px;border:1px solid #bccbde;border-radius:7px;width:100%;font:inherit}button{padding:10px 14px;border:0;border-radius:7px;cursor:pointer;background:#e7eef9;color:#122952;font-weight:600}.primary{background:#2869d8;color:white}.danger{color:#aa2424;background:#ffeded}table{width:100%;border-collapse:collapse}td,th{padding:12px;text-align:left;border-bottom:1px solid #e6edf5}th{color:#65758f;font-size:12px}.muted{color:#6b7e96}dialog{border:0;border-radius:14px;width:min(860px,95vw);max-height:92vh;padding:24px}dialog::backdrop{background:#12295299}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.wide{grid-column:1/-1}label{display:block;font-weight:600;margin-bottom:6px}small{color:#677c98}.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}.notice{padding:12px;background:#eef4ff;border-radius:8px;margin-top:14px;white-space:pre-wrap}#message{color:#b3261e}#search{max-width:420px}.hidden{display:none!important}@media(max-width:700px){.grid{grid-template-columns:1fr}.tablewrap{overflow:auto}}
+</style></head><body><header><a href="/">Voltar ao Grafana</a><h1>DUNKER IT · Verificações</h1><p>Disponibilidade de links, sites, portas e DNS</p></header><main><div class="bar"><input id="search" placeholder="Buscar cliente, nome ou destino"><button class="primary" id="new">+ Nova verificação</button><button id="reload">Atualizar</button><span id="summary" class="muted"></span></div><p id="message" role="alert"></p><div class="card tablewrap"><table><thead><tr><th>Nome / tipo</th><th>Cliente / unidade</th><th>Destino</th><th>Frequência</th><th>Estado</th><th>Ações</th></tr></thead><tbody id="rows"></tbody></table><p id="empty">Nenhuma verificação encontrada.</p></div></main>
+<dialog id="modal"><form id="form"><h2 id="title">Nova verificação</h2><input id="id" type="hidden"><div class="grid">
+<div><label>Tipo de verificação</label><select id="tipo"><option value="icmp">Ping — ICMP</option><option value="http">HTTP / HTTPS</option><option value="tcp">TCP</option><option value="dns">DNS</option></select></div><div class="wide"><label>Nome da verificação</label><input id="name" required placeholder="Ex.: Onkos SP — link Claro"></div>
+<div><label>Cliente</label><input id="Cliente" required></div><div><label>Unidade</label><input id="Unidade" required></div><div><label>Provedor / serviço</label><input id="Provedor" required></div>
+<div class="wide"><label id="destinationLabel">IP de destino</label><input id="instance" required><small id="destinationHint"></small></div>
+<div data-types="tcp"><label>Porta TCP</label><input id="tcp_port" type="number" min="1" max="65535" value="443"></div>
+<div data-types="http"><label>Método</label><select id="http_method"><option>GET</option><option>HEAD</option></select></div><div data-types="http"><label>Código HTTP esperado</label><input id="expected_status" type="number" min="0" max="599" value="0"><small>0 = qualquer código de 200 a 299</small></div><div data-types="http"><label>Seguir redirecionamentos</label><select id="follow_redirects"><option value="true">Sim</option><option value="false">Não</option></select></div>
+<div data-types="dns"><label>Nome a consultar</label><input id="dns_name" placeholder="exemplo.com.br"></div><div data-types="dns"><label>Registro DNS</label><select id="dns_type"><option>A</option><option>AAAA</option><option>CNAME</option><option>MX</option><option>TXT</option><option>NS</option></select></div><div data-types="dns"><label>Porta DNS</label><input id="dns_port" type="number" min="1" max="65535" value="53"></div>
+<div><label>Executar a cada (segundos)</label><input id="interval_seconds" type="number" min="10" max="3600" value="30" required></div><div><label id="timeoutLabel">Timeout por pacote (segundos)</label><input id="timeout_seconds" type="number" min="1" max="30" step="0.5" value="5" required></div><div><label>Estado</label><select id="enabled"><option value="true">Ativo</option><option value="false">Pausado</option></select></div>
+<div data-types="icmp"><label>Quantidade de pacotes</label><input id="packet_count" type="number" min="1" max="20" value="5"></div><div data-types="icmp"><label>Intervalo entre pacotes (segundos)</label><input id="packet_interval_seconds" type="number" min="0.1" max="10" step="0.1" value="1"></div><div data-types="icmp"><label>Limite de perda (%)</label><input id="loss_warning_percent" type="number" min="0" max="100" step="0.1" value="5"></div><div data-types="icmp"><label>Limite de latência média (ms)</label><input id="latency_warning_ms" type="number" min="1" max="10000" value="100"></div>
+</div><div class="notice" id="explanation"></div><div id="testResult" class="notice hidden" role="status"></div><p id="formError" role="alert"></p><div class="actions"><button type="button" id="cancel">Cancelar</button><button type="button" id="test">Testar agora</button><button type="submit" class="primary" id="save">Salvar</button></div></form></dialog>
 <script>
-let monitors=[];const fields=['name','Cliente','Unidade','Provedor','instance','criticality','interval_seconds','timeout_seconds','packet_count','packet_interval_seconds','latency_warning_ms','loss_warning_percent'];
+const $=id=>document.getElementById(id), labels={icmp:'Ping — ICMP',http:'HTTP / HTTPS',tcp:'TCP',dns:'DNS'};let monitors=[];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function toast(t){let e=document.getElementById('toast');e.textContent=t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2600)}
-async function api(url,opt={}){let r=await fetch(url,{headers:{'Content-Type':'application/json'},...opt});let j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.error||'Falha na operação');return j}
-async function load(){monitors=await api('api/monitors');render()}
-function render(){let q=document.getElementById('search').value.toLowerCase();let list=monitors.filter(x=>JSON.stringify(x).toLowerCase().includes(q));document.getElementById('summary').textContent=`${monitors.filter(x=>x.enabled).length} ativos · ${monitors.length} cadastrados`;let b=document.getElementById('rows');b.innerHTML=list.map(x=>`<tr><td><strong>${esc(x.name)}</strong><br><span class="pill ${esc(x.criticality)}">${esc(x.criticality)}</span></td><td>${esc(x.Cliente)}<br><small>${esc(x.Unidade)} · ${esc(x.Provedor)}</small></td><td><code>${esc(x.instance)}</code></td><td>${esc(x.packet_count)} pacotes / ${esc(x.interval_seconds)}s<br><small>timeout ${esc(x.timeout_seconds)}s</small></td><td><span class="pill ${x.enabled?'on':'off'}">${x.enabled?'Ativo':'Pausado'}</span></td><td><div class="actions"><button class="secondary" onclick="edit('${x.id}')">Editar</button><button class="danger" onclick="removeMonitor('${x.id}')">Excluir</button></div></td></tr>`).join('');document.getElementById('empty').style.display=list.length?'none':'block'}
-function openForm(x){document.getElementById('form').reset();document.getElementById('id').value='';document.getElementById('formTitle').textContent='Novo monitor de link';document.getElementById('testResult').innerHTML='';if(x){document.getElementById('id').value=x.id;fields.forEach(f=>document.getElementById(f).value=x[f]);document.getElementById('enabled').value=String(x.enabled);document.getElementById('formTitle').textContent='Editar monitor'}document.getElementById('modal').classList.add('open')}
-function closeForm(){document.getElementById('modal').classList.remove('open')}function edit(id){openForm(monitors.find(x=>x.id===id))}
-function payload(){let x={};fields.forEach(f=>x[f]=document.getElementById(f).value);['interval_seconds','timeout_seconds','packet_count','packet_interval_seconds','latency_warning_ms','loss_warning_percent'].forEach(f=>x[f]=Number(x[f]));x.enabled=document.getElementById('enabled').value==='true';return x}
-document.getElementById('form').addEventListener('submit',async e=>{e.preventDefault();try{let id=document.getElementById('id').value;await api(id?'api/monitors/'+id:'api/monitors',{method:id?'PUT':'POST',body:JSON.stringify(payload())});closeForm();toast('Monitor salvo');await load()}catch(e){toast(e.message)}});
-async function testNow(){let box=document.getElementById('testResult');box.innerHTML='<div class="notice">Testando…</div>';try{let r=await api('api/test',{method:'POST',body:JSON.stringify(payload())});box.innerHTML=`<div class="notice">${r.collector_success?(r.success?'✅ Respondeu':'❌ Sem resposta'):'❌ Falha do coletor: verifique permissão ICMP'} · ${r.received}/${r.sent} pacotes · perda ${r.loss_percent??'—'}% · latência média ${r.rtt_ms??'—'} ms</div>`}catch(e){box.innerHTML=`<div class="notice">❌ ${esc(e.message)}</div>`}}
-async function removeMonitor(id){if(!confirm('Excluir este monitor? O histórico já armazenado no Prometheus será preservado até a retenção expirar.'))return;try{await api('api/monitors/'+id,{method:'DELETE'});toast('Monitor excluído');await load()}catch(e){toast(e.message)}}
-document.getElementById('search').addEventListener('input',render);document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeForm()});setInterval(()=>document.getElementById('clock').textContent=new Date().toLocaleString('pt-BR'),1000);load().catch(e=>toast(e.message));
-</script></body></html>'''
+async function api(path,opt={}){const r=await fetch('api/'+path,{...opt,headers:{'Content-Type':'application/json'}});const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.error||'Falha na operação');return j}
+function typeChanged(){const t=$('tipo').value;document.querySelectorAll('[data-types]').forEach(e=>{const show=e.dataset.types.split(' ').includes(t);e.classList.toggle('hidden',!show);e.querySelectorAll('input,select').forEach(x=>x.disabled=!show)});$('destinationLabel').textContent={icmp:'IP de destino (IPv4)',http:'URL completa',tcp:'IP ou hostname',dns:'Servidor DNS (IP ou hostname)'}[t];$('instance').placeholder={icmp:'172.16.27.51',http:'https://exemplo.com.br/status',tcp:'servidor.exemplo.com.br',dns:'1.1.1.1'}[t];$('destinationHint').textContent=t==='http'?'Use http:// ou https://. O certificado HTTPS é validado.':'';$('timeoutLabel').textContent=t==='icmp'?'Timeout por pacote (segundos)':'Timeout da verificação (segundos)';$('explanation').textContent={icmp:'Múltiplos pacotes medem perda e latência. O Blackbox mantém uma checagem rápida de disponibilidade independente. Todos os links têm a mesma importância.',http:'Verifica o código de resposta. GET e HEAD disponíveis; cabeçalhos personalizados, autenticação e validação do corpo ainda não estão disponíveis.',tcp:'Verifica se o destino aceita uma conexão na porta informada. Não valida o protocolo de aplicação.',dns:'Consulta o registro no servidor escolhido. Sucesso exige resposta DNS sem erro e pelo menos uma resposta. Não compara um valor de registro esperado.'}[t];$('dns_name').required=t==='dns'}
+async function load(){try{monitors=await api('monitors');$('message').textContent='';render()}catch(e){$('message').textContent=e.message}}
+function render(){const q=$('search').value.toLowerCase(),list=monitors.filter(x=>JSON.stringify(x).toLowerCase().includes(q));$('summary').textContent=`${monitors.length} verificações · ${monitors.filter(x=>x.enabled!==false).length} ativas`;$('empty').hidden=!!list.length;$('rows').innerHTML=list.map(x=>`<tr><td><strong>${esc(x.name||x.instance)}</strong><br>${esc(labels[x.tipo])}</td><td>${esc(x.Cliente)} / ${esc(x.Unidade)}<br>${esc(x.Provedor)}</td><td>${esc(x.instance)}${x.tipo==='dns'?'<br>'+esc(x.dns_name)+' · '+esc(x.dns_type):''}</td><td>${esc(x.interval_seconds||30)}s</td><td>${x.enabled===false?'Pausado':'Ativo'}</td><td><button data-action="edit" data-id="${esc(x.id)}">Editar</button> <button class="danger" data-action="delete" data-id="${esc(x.id)}">Excluir</button></td></tr>`).join('')}
+function openForm(x){$('form').reset();$('id').value=x?.id||'';$('formError').textContent='';$('testResult').classList.add('hidden');$('title').textContent=x?'Editar verificação':'Nova verificação';if(x){['tipo','name','Cliente','Unidade','Provedor','instance','interval_seconds','timeout_seconds','packet_count','packet_interval_seconds','loss_warning_percent','latency_warning_ms','http_method','expected_status','dns_name','dns_type','dns_port','tcp_port'].forEach(k=>{if(x[k]!=null)$(k).value=x[k]});$('enabled').value=String(x.enabled!==false);$('follow_redirects').value=String(x.follow_redirects!==false);if(x.tipo==='tcp')$('instance').value=x.tcp_host||x.instance.replace(/:\d+$/,'').replace(/^\[|\]$/g,'')}typeChanged();$('modal').showModal()}
+function payload(){const t=$('tipo').value,x={tipo:t};['name','Cliente','Unidade','Provedor','instance'].forEach(k=>x[k]=$(k).value.trim());['interval_seconds','timeout_seconds'].forEach(k=>x[k]=Number($(k).value));x.enabled=$('enabled').value==='true';if(t==='icmp')['packet_count','packet_interval_seconds','loss_warning_percent','latency_warning_ms'].forEach(k=>x[k]=Number($(k).value));if(t==='tcp'){x.tcp_host=x.instance;x.tcp_port=Number($('tcp_port').value)}if(t==='http'){x.http_method=$('http_method').value;x.expected_status=Number($('expected_status').value);x.follow_redirects=$('follow_redirects').value==='true'}if(t==='dns'){x.dns_name=$('dns_name').value.trim();x.dns_type=$('dns_type').value;x.dns_port=Number($('dns_port').value)}return x}
+$('form').onsubmit=async e=>{e.preventDefault();$('save').disabled=true;try{const id=$('id').value;await api(id?'monitors/'+id:'monitors',{method:id?'PUT':'POST',body:JSON.stringify(payload())});$('modal').close();await load()}catch(e){$('formError').textContent=e.message}finally{$('save').disabled=false}};
+$('test').onclick=async()=>{if(!$('form').reportValidity())return;$('test').disabled=true;$('testResult').classList.remove('hidden');$('testResult').textContent='Testando…';try{const r=await api('test',{method:'POST',body:JSON.stringify(payload())});$('testResult').textContent=$('tipo').value==='icmp'?`${r.collector_success?(r.success?'Respondeu':'Sem resposta'):'Falha do coletor ICMP'} · ${r.received}/${r.sent} pacotes · perda ${r.loss_percent??'—'}% · latência média ${r.rtt_ms??'—'} ms`:`${r.success?'Sucesso':'Falha'} · ${r.duration_ms} ms${r.http_status_code?' · HTTP '+r.http_status_code:''}${r.dns_rcode!=null?' · DNS rcode '+r.dns_rcode+' · '+r.dns_answers+' respostas':''}${r.error?' · '+r.error:''}`}catch(e){$('testResult').textContent=e.message}finally{$('test').disabled=false}};
+$('rows').onclick=async e=>{const b=e.target.closest('button[data-id]');if(!b)return;const x=monitors.find(x=>x.id===b.dataset.id);if(b.dataset.action==='edit')openForm(x);else if(confirm('Excluir esta verificação? O histórico já coletado será preservado até a retenção expirar.')){try{await api('monitors/'+x.id,{method:'DELETE'});await load()}catch(e){$('message').textContent=e.message}}};$('new').onclick=()=>openForm();$('cancel').onclick=()=>$('modal').close();$('tipo').onchange=typeChanged;$('search').oninput=render;$('reload').onclick=load;typeChanged();load();
+</script></body></html>
+'''
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -251,7 +267,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return self.wfile.write(body)
         if self.path == "/api/monitors":
             with LOCK:
-                return self.json_response([row for row in load_inventory() if row.get("tipo") == "icmp"])
+                return self.json_response([row for row in load_inventory() if row.get("tipo") in SUPPORTED])
         self.json_response({"error": "Não encontrado"}, 404)
 
     def do_POST(self):
@@ -265,8 +281,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 row = normalize(payload)
                 with LOCK:
                     rows = load_inventory()
-                    if any(x.get("tipo") == "icmp" and x.get("instance") == row["instance"] and x.get("enabled", True) for x in rows):
-                        raise ValueError("Já existe um monitor ativo para esse IP")
+                    if any(x.get("tipo") == row["tipo"] and x.get("instance") == row["instance"] and x.get("dns_name", "") == row.get("dns_name", "") and x.get("enabled", True) for x in rows):
+                        raise ValueError("Já existe um monitor ativo para esse destino e tipo")
                     rows.append(row)
                     persist(rows)
                 return self.json_response(row, 201)
@@ -285,8 +301,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 rows = load_inventory()
                 index = next(i for i, row in enumerate(rows) if row.get("id") == match.group(1))
                 updated = normalize(self.payload(), rows[index])
-                if any(i != index and x.get("tipo") == "icmp" and x.get("instance") == updated["instance"] and x.get("enabled", True) for i, x in enumerate(rows)):
-                    raise ValueError("Já existe um monitor ativo para esse IP")
+                if any(i != index and x.get("tipo") == updated["tipo"] and x.get("instance") == updated["instance"] and x.get("dns_name", "") == updated.get("dns_name", "") and x.get("enabled", True) for i, x in enumerate(rows)):
+                    raise ValueError("Já existe um monitor ativo para esse destino e tipo")
                 rows[index] = updated
                 persist(rows)
             self.json_response(updated)
@@ -315,10 +331,9 @@ if __name__ == "__main__":
     if not INVENTORY.exists() or (not load_inventory() and not (DATA_DIR / ".initialized").exists()):
         seed = Path("/etc/dunker/inventory.json")
         rows = json.loads(seed.read_text(encoding="utf-8")) if seed.exists() else []
-        rows = [normalize(dict(r, name=r.get("name", r["instance"]))) if r.get("tipo") == "icmp" else r for r in rows]
+        rows = [normalize(dict(r, name=r.get("name", r["instance"]))) if r.get("tipo") in SUPPORTED else r for r in rows]
         persist(rows)
     rows = load_inventory()
-    if any(r.get("tipo") == "icmp" and not r.get("id") for r in rows):
-        persist([normalize(dict(r, name=r.get("name", r["instance"]))) if r.get("tipo") == "icmp" and not r.get("id") else r for r in rows])
+    persist([normalize(dict(r, name=r.get("name", r["instance"])), r if r.get("id") else None) if r.get("tipo") in SUPPORTED else r for r in rows])
     (DATA_DIR / ".initialized").touch()
     http.server.ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()

@@ -9,7 +9,7 @@ services:
         max-file: '3'
     security_opt:
     - no-new-privileges:true
-    image: dunker/monitor-all-in-one:1.1.0
+    image: vitorbrabodunker/dunker-monitor-unico:1.2.0
     build:
       context: .
       dockerfile: Dockerfile.unico

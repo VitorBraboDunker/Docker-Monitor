@@ -2,35 +2,37 @@ groups:
 - name: dunker-recording
   rules:
   - record: dnk:target_seen
-    expr: max by (Cliente,Unidade,Provedor,instance,tipo) (label_replace(((time()
+    expr: ((max by (Cliente,Unidade,Provedor,instance,tipo) (label_replace(((time()
       - timestamp(probe_success{job="blackbox_icmp"})) < 180), "tipo", "icmp", "job",
       ".*") or label_replace(((time() - timestamp(probe_success{job="blackbox_http"}))
       < 180), "tipo", "http", "job", ".*") or label_replace(((time() - timestamp(probe_success{job="blackbox_tcp"}))
       < 180), "tipo", "tcp", "job", ".*") or label_replace(((time() - timestamp(up{job="snmp"}))
       < 180), "tipo", "snmp", "job", ".*") or label_replace(((time() - timestamp(up{job="integrations/windows"}))
       < 180), "tipo", "windows", "job", ".*") or label_replace(((time() - timestamp(up{job="integrations/unix"}))
-      < 180), "tipo", "linux", "job", ".*"))
+      < 180), "tipo", "linux", "job", ".*")))) or on (Cliente,Unidade,Provedor,instance,tipo)
+      max by (Cliente,Unidade,Provedor,instance,tipo) ((time() - dnk_check_timestamp_seconds)
+      < on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name) dnk_check_config_stale_seconds)
   - record: dnk:availability_state
-    expr: max by (Cliente,Unidade,Provedor,instance,tipo) (label_replace((3 * (1 -
-      probe_success{job="blackbox_icmp"})), "tipo", "icmp", "job", ".*") or label_replace((3
-      * (1 - probe_success{job="blackbox_http"})), "tipo", "http", "job", ".*") or
-      label_replace((3 * (1 - probe_success{job="blackbox_tcp"})), "tipo", "tcp",
-      "job", ".*") or label_replace((3 * (1 - up{job="snmp"})), "tipo", "snmp", "job",
-      ".*") or label_replace((3 * (1 - up{job="integrations/windows"})), "tipo", "windows",
-      "job", ".*") or label_replace((3 * (1 - up{job="integrations/unix"})), "tipo",
-      "linux", "job", ".*"))
+    expr: max by (Cliente,Unidade,Provedor,instance,tipo) ((max by (Cliente,Unidade,Provedor,instance,tipo)
+      (label_replace((3 * (1 - probe_success{job="blackbox_icmp"})), "tipo", "icmp",
+      "job", ".*") or label_replace((3 * (1 - probe_success{job="blackbox_http"})),
+      "tipo", "http", "job", ".*") or label_replace((3 * (1 - probe_success{job="blackbox_tcp"})),
+      "tipo", "tcp", "job", ".*") or label_replace((3 * (1 - up{job="snmp"})), "tipo",
+      "snmp", "job", ".*") or label_replace((3 * (1 - up{job="integrations/windows"})),
+      "tipo", "windows", "job", ".*") or label_replace((3 * (1 - up{job="integrations/unix"})),
+      "tipo", "linux", "job", ".*"))) or (3 * (1 - dnk_check_success)))
   - record: dnk:latency_state
-    expr: 2 * (avg_over_time(dnk_ping_rtt_seconds[5m]) * 1000 > bool on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
-      dnk_ping_config_latency_warning_milliseconds) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
-      (dnk_ping_collector_success == 1) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
-      ((time() - dnk_ping_last_measurement_timestamp_seconds) < on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
+    expr: 2 * (avg_over_time(dnk_ping_rtt_seconds[5m]) * 1000 > bool on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      dnk_ping_config_latency_warning_milliseconds) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (dnk_ping_collector_success == 1) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      ((time() - dnk_ping_last_measurement_timestamp_seconds) < on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
       (dnk_ping_config_interval_seconds * 2 + dnk_ping_config_packet_count * dnk_ping_config_timeout_seconds
       + 30))
   - record: dnk:packetloss_state
-    expr: 2 * (avg_over_time(dnk_ping_loss_percent[5m]) > bool on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
-      dnk_ping_config_loss_warning_percent) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
-      (dnk_ping_collector_success == 1) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
-      ((time() - dnk_ping_last_measurement_timestamp_seconds) < on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
+    expr: 2 * (avg_over_time(dnk_ping_loss_percent[5m]) > bool on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      dnk_ping_config_loss_warning_percent) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (dnk_ping_collector_success == 1) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      ((time() - dnk_ping_last_measurement_timestamp_seconds) < on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
       (dnk_ping_config_interval_seconds * 2 + dnk_ping_config_packet_count * dnk_ping_config_timeout_seconds
       + 30))
   - record: dnk:cpu_percent
@@ -71,10 +73,10 @@ groups:
       description: "ICMP falhou por 2 minutos. ICMP bloqueado n\xE3o comprova queda\
         \ de toda a rede."
   - alert: LatenciaAlta
-    expr: dnk_ping_rtt_seconds * 1000 > on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
-      dnk_ping_config_latency_warning_milliseconds and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
-      (dnk_ping_collector_success == 1) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
-      ((time() - dnk_ping_last_measurement_timestamp_seconds) < on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
+    expr: dnk_ping_rtt_seconds * 1000 > on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      dnk_ping_config_latency_warning_milliseconds and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (dnk_ping_collector_success == 1) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      ((time() - dnk_ping_last_measurement_timestamp_seconds) < on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
       (dnk_ping_config_interval_seconds * 2 + dnk_ping_config_packet_count * dnk_ping_config_timeout_seconds
       + 30))
     for: 5m
@@ -84,10 +86,10 @@ groups:
       summary: "Lat\xEAncia acima do limite configurado: {{ $labels.instance }}"
       description: Limite definido no cadastro de monitoramento.
   - alert: PerdaDePacotes
-    expr: dnk_ping_loss_percent > on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
-      dnk_ping_config_loss_warning_percent and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
-      (dnk_ping_collector_success == 1) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
-      ((time() - dnk_ping_last_measurement_timestamp_seconds) < on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
+    expr: dnk_ping_loss_percent > on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      dnk_ping_config_loss_warning_percent and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (dnk_ping_collector_success == 1) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      ((time() - dnk_ping_last_measurement_timestamp_seconds) < on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
       (dnk_ping_config_interval_seconds * 2 + dnk_ping_config_packet_count * dnk_ping_config_timeout_seconds
       + 30))
     for: 5m
@@ -98,10 +100,10 @@ groups:
       description: Limite e quantidade de pacotes definidos no cadastro.
   - alert: FalhaColetorPing
     expr: dnk_ping_collector_success == 0 or (dnk_ping_last_measurement_timestamp_seconds
-      unless on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
-      ((time() - dnk_ping_last_measurement_timestamp_seconds) < on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
+      unless on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name) ((time()
+      - dnk_ping_last_measurement_timestamp_seconds) < on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
       (dnk_ping_config_interval_seconds * 2 + dnk_ping_config_packet_count * dnk_ping_config_timeout_seconds
-      + 30))) or (dnk_ping_config_interval_seconds unless on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,criticidade)
+      + 30))) or (dnk_ping_config_interval_seconds unless on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
       dnk_ping_last_measurement_timestamp_seconds) or (time() - dnk_ping_last_round_timestamp_seconds
       > 90) or dnk_ping_config_error == 1
     for: 1m
@@ -183,3 +185,11 @@ groups:
     annotations:
       summary: "Endpoint indispon\xEDvel: {{ $labels.instance }}"
       description: "Verifique servi\xE7o, porta, certificado ou rota."
+  - alert: VerificacaoSemResposta
+    expr: dnk_check_success == 0
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Verifica\xE7\xE3o falhou: {{ $labels.monitor_name }}"
+      description: "Tipo: {{ $labels.tipo }}. Confira destino, rede e par\xE2metros."

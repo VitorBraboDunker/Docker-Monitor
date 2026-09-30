@@ -8,8 +8,7 @@
       "Unidade": "VM",
       "Provedor": "Autoteste",
       "monitor_id": "d251f506-3af6-4b83-abb4-40911ae96c8b",
-      "monitor_name": "127.0.0.1",
-      "criticidade": "alta"
+      "monitor_name": "127.0.0.1"
     }
   },
   {
@@ -21,8 +20,7 @@
       "Unidade": "Matriz",
       "Provedor": "Cloudflare",
       "monitor_id": "8ed93c00-202a-489d-b8da-76a34f9db292",
-      "monitor_name": "1.1.1.1",
-      "criticidade": "alta"
+      "monitor_name": "1.1.1.1"
     }
   }
 ]
