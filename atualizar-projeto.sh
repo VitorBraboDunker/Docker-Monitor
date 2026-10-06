@@ -23,15 +23,14 @@ if [[ -n "$compose_name" ]]; then args+=(--compose-name "$compose_name");fi
 manager "${args[@]}"
 cd -- "$project"
 validate(){
- if [[ -f config/secrets/ingest_hash.pending ]]; then
-  ingest_password=$(<config/secrets/ingest_password)
-  docker run --rm --entrypoint caddy caddy:2.11.4 hash-password --plaintext "$ingest_password" > config/secrets/ingest_hash
-  unset ingest_password;chmod 600 config/secrets/ingest_hash
+ if [[ -f config/generated/ingest_hash.pending ]]; then
+  ingest_password=$(<config/generated/ingest_password)
+  docker run --rm --entrypoint caddy caddy:2.11.4 hash-password --plaintext "$ingest_password" > config/generated/ingest_hash
+  unset ingest_password;chmod 600 config/generated/ingest_hash
   manager finalize-hash
  fi
  docker compose -f compose.separado.yaml config --quiet
  docker compose -f compose.separado.yaml run --rm --no-deps --entrypoint /bin/promtool prometheus check config /etc/dunker/prometheus/separado.yml
- docker compose -f compose.separado.yaml run --rm --no-deps --entrypoint /bin/promtool sharepoint-prometheus check config /etc/dunker/sharepoint/prometheus.yml
  docker compose -f compose.separado.yaml run --rm --no-deps --entrypoint caddy caddy validate --config /etc/dunker/caddy/Caddyfile --adapter caddyfile
 }
 # Run validation in an explicit fail-fast subshell; Bash functions in an if
@@ -41,11 +40,11 @@ set +e
 validation_status=$?
 set -e
 if [[ $validation_status -ne 0 ]]; then manager rollback;echo 'Validação falhou; arquivos restaurados antes da ativação. Confira o relatório.' >&2;exit 1;fi
-docker compose -f compose.separado.yaml up -d --no-build
+docker compose -f compose.separado.yaml up -d --no-build --remove-orphans
 docker compose -f compose.separado.yaml restart
 if ! docker compose -f compose.separado.yaml exec -T admin python3 /opt/dunker/sharepoint_activate.py;then echo 'Ativação do plugin pendente; ative Dunker · Integrações no menu de plugins do Grafana.' >&2;fi
 docker compose -f compose.separado.yaml ps
 python3 "$package/scripts/docker_audit.py" --project "$project" --output "$report" --stage depois
 manager inspect --output "/projeto/$report_relative" --stage depois
 echo "Projeto completo atualizado. Revisão antes/depois: $report"
-echo 'Use apenas compose.separado.yaml. Credenciais novas estão em config/secrets; guarde no seu cofre.'
+echo 'Use apenas compose.separado.yaml. Credenciais novas estão em config/global/credentials.json; guarde no seu cofre.'

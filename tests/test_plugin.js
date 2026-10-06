@@ -7,8 +7,8 @@ vm.runInNewContext(bundle,{System,console});assert(exportsMap.plugin instanceof 
 assert.deepEqual(dependencies,['react','@grafana/data','@grafana/runtime']);
 const meta=JSON.parse(fs.readFileSync(path.join(root,'config/grafana/plugins/dunker-integracoes-app/plugin.json')));
 assert(!meta.routes,'No token-only route may bypass per-user permissions');
-assert.equal(meta.includes.length,4);assert.equal(meta.includes[3].role,'Admin');
+assert.equal(meta.includes.length,8);assert.equal(meta.includes.find(i=>i.path.endsWith('/permissoes')).role,'Admin');
 assert(bundle.includes('credentials:\'same-origin\''));
 assert(bundle.includes('mountLinks'));assert(bundle.includes('mountAccess'));
 assert(!bundle.includes('gatewayToken'));assert(bundle.includes(fs.readFileSync(path.join(root,'config/admin/sharepoint-ui.js'),'utf8')));
-console.log('Plugin: SystemJS registration, 4 native pages and same-origin session requests OK. Live Grafana validation remains required.');
+console.log('Plugin: SystemJS registration, 8 native pages and same-origin session requests OK. Live Grafana validation remains required.');

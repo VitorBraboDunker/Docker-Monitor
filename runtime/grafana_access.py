@@ -17,7 +17,8 @@ GRAFANA_URL = os.environ.get('DNK_GRAFANA_URL', 'http://grafana:3000').rstrip('/
 ORG_ID = int(os.environ.get('DNK_GRAFANA_ORG_ID', '1'))
 POLICY_FILE = Path(os.environ.get('DNK_ACCESS_FILE', '/etc/dunker/access/private/policy.json'))
 LOCK = threading.RLock()
-AREAS = ('links', 'snmp', 'sharepoint')
+AREAS = ('links', 'snmp', 'sharepoint', 'servidores')
+CENTRAL_AREAS = ('links','snmp','sharepoint','servidores','alloy','excluidos','dominios','permissoes')
 LEVELS = ('none', 'read', 'edit')
 DEFAULT_POLICY = {
     'profiles': {
@@ -92,6 +93,9 @@ def identity(headers):
 
 
 def validate_policy(value):
+    if not isinstance(value,dict) or not isinstance(value.get('profiles'),dict):raise ValueError('Política inválida.')
+    for profile in value.get('profiles',{}).values():
+        if isinstance(profile,dict) and isinstance(profile.get('permissions'),dict):profile['permissions'].setdefault('servidores',profile['permissions'].get('links','none'))
     if not isinstance(value, dict) or set(value) != {'profiles', 'role_profiles', 'users'}:
         raise ValueError('Política inválida.')
     profiles = value['profiles']
@@ -151,8 +155,11 @@ def permissions(user, policy):
 
 
 def classify(path):
+    if path in ('/api/alloy','/api/alloy/agents','/api/history/servidores','/api/deleted/servidores') or path.startswith(('/api/alloy/package/','/api/restore/servidores/','/api/servers/servidores/')):return 'servidores'
     if path.startswith('/api/sharepoint/') or path == '/sharepoint/':
         return 'sharepoint'
+    if path in ('/api/history/firewalls','/api/deleted/firewalls') or path.startswith('/api/restore/firewalls/'):return 'snmp'
+    if path in ('/api/history/links','/api/deleted/links') or path.startswith('/api/restore/links/'):return 'links'
     if path == '/api/devices' or path.startswith('/api/devices/'):
         return 'snmp'
     if path in ('/api/monitors', '/api/test') or path.startswith('/api/monitors/'):
@@ -162,7 +169,7 @@ def classify(path):
 
 def authorize(handler):
     path = urllib.parse.urlsplit(handler.path).path
-    if path == '/healthz' and handler.command == 'GET':
+    if path in ('/healthz','/metrics') and handler.command == 'GET':
         return True
     try:
         # Query-bearing aliases are rejected before the old exact-match router.
@@ -180,6 +187,13 @@ def authorize(handler):
         access = permissions(user, policy)
         handler.grafana_user = user
         handler.grafana_access = access
+        if path in ('/central.js','/central.css') and handler.command=='GET':return True
+        if path.startswith('/central/') and handler.command=='GET':
+            area=path[len('/central/'):]
+            if area not in CENTRAL_AREAS:raise AccessError('Não encontrado.',404)
+            permitted=access['manage_access'] if area in ('permissoes','dominios') else any(p!='none' for p in access['permissions'].values()) if area=='excluidos' else access['permissions']['servidores' if area=='alloy' else area]!='none'
+            if not permitted:raise AccessError('Seu perfil não permite acessar esta integração.',403)
+            return True
         if path == '/api/access/me':
             if handler.command != 'GET':
                 raise AccessError('Método não permitido.', 405)
@@ -187,6 +201,10 @@ def authorize(handler):
         if path.startswith('/api/access/'):
             if not access['manage_access']:
                 raise AccessError('Somente Admin pode gerenciar permissões.', 403)
+            return True
+        if path=='/api/status' and handler.command=='GET':return True
+        if path=='/api/global/status':
+            if not access['manage_access']:raise AccessError('Somente Admin pode gerenciar agentes e configurações globais.',403)
             return True
         area = classify(path)
         if area is None:
@@ -196,7 +214,9 @@ def authorize(handler):
             raise AccessError('Seu perfil não permite esta operação nesta integração.', 403)
         return True
     except AccessError as exc:
-        handler.json_response({'error': str(exc)}, exc.status)
+        if exc.status==401 and handler.command=='GET' and path in {'/central/'+a for a in CENTRAL_AREAS}:
+            handler.send_response(302);handler.send_header('Location','/login?redirectTo='+urllib.parse.quote('/monitoramento'+path,safe=''));handler.send_header('Content-Length','0');handler.send_header('Cache-Control','no-store');handler.end_headers()
+        else:handler.json_response({'error': str(exc)}, exc.status)
         return False
     except (TypeError, ValueError, KeyError):
         handler.json_response({'error': 'Não foi possível verificar as permissões.'}, 503)

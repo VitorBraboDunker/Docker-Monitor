@@ -4,7 +4,8 @@ providers:
   orgId: 1
   folder: Dunker Monitor
   type: file
-  allowUiUpdates: true
+  allowUiUpdates: false
+  disableDeletion: false
   updateIntervalSeconds: 30
   options:
     path: /etc/dunker/grafana/dashboards

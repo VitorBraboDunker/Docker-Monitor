@@ -7,7 +7,7 @@
     "author": {
       "name": "Dunker IT"
     },
-    "description": "Configuração de links, SNMP, SharePoint e permissões usando a sessão Grafana.",
+    "description": "Abre a central HTML de integrações com a sessão e as permissões do Grafana.",
     "keywords": [
       "sharepoint",
       "monitoramento",
@@ -17,8 +17,8 @@
       "small": "img/logo.svg",
       "large": "img/logo.svg"
     },
-    "version": "1.4.3",
-    "updated": "2026-10-05"
+    "version": "1.0.1",
+    "updated": "2026-10-06"
   },
   "dependencies": {
     "grafanaDependency": ">=11.0.0",
@@ -48,6 +48,34 @@
       "addToNav": true,
       "defaultNav": false,
       "role": "Viewer"
+    },
+    {
+      "type": "page",
+      "name": "Servidores e histórico",
+      "path": "/a/dunker-integracoes-app/servidores",
+      "addToNav": true,
+      "role": "Viewer"
+    },
+    {
+      "type": "page",
+      "name": "Agentes Alloy",
+      "path": "/a/dunker-integracoes-app/alloy",
+      "addToNav": true,
+      "role": "Viewer"
+    },
+    {
+      "type": "page",
+      "name": "Itens Excluídos",
+      "path": "/a/dunker-integracoes-app/excluidos",
+      "addToNav": true,
+      "role": "Viewer"
+    },
+    {
+      "type": "page",
+      "name": "Domínios e certificados",
+      "path": "/a/dunker-integracoes-app/dominios",
+      "addToNav": true,
+      "role": "Admin"
     },
     {
       "type": "page",

@@ -3,6 +3,7 @@ from pathlib import Path
 from unittest.mock import patch
 PACKAGE=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(PACKAGE/'runtime'))
+import global_config,release_state
 import sharepoint_collector as sp
 TENANT='11111111-1111-1111-1111-111111111111';CLIENT='22222222-2222-2222-2222-222222222222'
 def payload(**extra): return dict(name='Microsoft 365',Cliente='Cliente Teste',tenant_id=TENANT,client_id=CLIENT,client_secret='SECRET-TEST-ONLY',capacity_gib=100,**extra)
@@ -19,7 +20,9 @@ def csv_rows(lines):
 class Tests(unittest.TestCase):
  def setUp(self):
   self.temp=tempfile.TemporaryDirectory();self.old=(sp.PRIVATE,sp.DB_PATH,sp.TOKEN_FILE)
-  sp.PRIVATE=Path(self.temp.name);sp.DB_PATH=sp.PRIVATE/'sp.sqlite';sp.TOKEN_FILE=sp.PRIVATE/'gateway_token';sp.TOKEN_FILE.write_text('PRIVATE-TEST-TOKEN');sp.JOBS.clear();sp.BUSY.clear();sp.init_db()
+  self.addCleanup(patch.stopall)
+  patch.object(global_config,'FILE',Path(self.temp.name)/'credentials.json').start();patch.object(release_state,'DB',Path(self.temp.name)/'history.sqlite3').start()
+  sp.PRIVATE=Path(self.temp.name);sp.DB_PATH=sp.PRIVATE/'sp.sqlite';sp.TOKEN_FILE=sp.PRIVATE/'gateway_token';sp.TOKEN_FILE.write_text('PRIVATE-TEST-TOKEN');global_config.put('system','gateway_token','PRIVATE-TEST-TOKEN');sp.JOBS.clear();sp.BUSY.clear();sp.init_db()
  def tearDown(self):
   deadline=time.time()+5
   while sp.BUSY and time.time()<deadline:time.sleep(.01)
@@ -82,18 +85,28 @@ class Tests(unittest.TestCase):
   sp.init_db();self.assertEqual(sp.latest(cfg['id'])['report_date'],day)
  def test_quota_not_sum_and_selection_does_not_change_tenant(self):
   cfg,day,sites=self.save_report();sp.save({'selected_sites':['site-b']},cfg['id']);m=sp.metrics().decode()
-  for name,val in [('capacity_bytes',100*sp.GIB),('tenant_used_bytes',87*sp.GIB),('selected_used_bytes',2*sp.GIB),('state',1)]:
+  for name,val in [('capacity_bytes',100*sp.GIB),('tenant_used_bytes',87*sp.GIB),('selected_used_bytes',2*sp.GIB),('state',2)]:
    line=next(l for l in m.splitlines() if l.startswith('dnk_sharepoint_'+name+'{'));self.assertEqual(float(line.rsplit(' ',1)[-1]),val)
   self.assertNotIn('site_id="site-a"',m);self.assertIn('site_id="site-b"',m)
  def test_failure_and_stale_cannot_be_green(self):
   cfg,day,sites=self.save_report();self.assertIn('dnk_sharepoint_state',sp.metrics().decode())
-  m=sp.metrics(now=time.time()+6*86400).decode();line=next(l for l in m.splitlines() if l.startswith('dnk_sharepoint_state{'));self.assertTrue(line.endswith(' 4'))
+  m=sp.metrics(now=time.time()+6*86400).decode();line=next(l for l in m.splitlines() if l.startswith('dnk_sharepoint_state{'));self.assertTrue(line.endswith(' 1'))
   with sp.connect() as db:db.execute('UPDATE tenants SET error=?',('Falha segura',))
-  line=next(l for l in sp.metrics().decode().splitlines() if l.startswith('dnk_sharepoint_state{'));self.assertTrue(line.endswith(' 4'))
+  line=next(l for l in sp.metrics().decode().splitlines() if l.startswith('dnk_sharepoint_state{'));self.assertTrue(line.endswith(' 1'))
  def test_unknown_capacity_and_paused(self):
   cfg,day,sites=self.save_report();sp.save({'capacity_gib':0},cfg['id']);m=sp.metrics().decode()
-  self.assertTrue(next(l for l in m.splitlines() if l.startswith('dnk_sharepoint_state{')).endswith(' 5'));self.assertNotIn('dnk_sharepoint_utilization_percent{',m)
-  sp.save({'enabled':False},cfg['id']);self.assertNotIn('dnk_sharepoint_state{',sp.metrics().decode())
+  self.assertTrue(next(l for l in m.splitlines() if l.startswith('dnk_sharepoint_state{')).endswith(' 2'));self.assertNotIn('dnk_sharepoint_utilization_percent{',m)
+  sp.save({'enabled':False},cfg['id']);self.assertTrue(next(l for l in sp.metrics().decode().splitlines() if l.startswith('dnk_sharepoint_state{')).endswith(' 5'))
+ def test_soft_delete_restore_credentials_and_same_history(self):
+  cfg,day,sites=self.save_report();ident=cfg['id'];row=sp.get_row(ident)
+  value=json.loads(row['config']);value.update(deleted_at=time.time(),previous_enabled=True,enabled=False)
+  with sp.connect() as db:db.execute('UPDATE tenants SET config=?,revision=? WHERE id=?',(json.dumps(value),'deleted-revision',ident))
+  self.assertEqual(sp.rows(),[]);self.assertEqual(sp.rows(True)[0]['id'],ident);self.assertEqual(sp.get_row(ident)['secret'],'SECRET-TEST-ONLY')
+  self.assertNotIn('dnk_sharepoint_enabled{',sp.metrics().decode());self.assertIsNotNone(sp.latest(ident))
+  with self.assertRaises(sp.SafeError):sp.commit_report(row,day,sites)
+  value.pop('deleted_at');value['enabled']=value.pop('previous_enabled')
+  with sp.connect() as db:db.execute('UPDATE tenants SET config=?,revision=? WHERE id=?',(json.dumps(value),'restore-revision',ident))
+  self.assertEqual(sp.rows()[0]['id'],ident);self.assertIsNotNone(sp.latest(ident))
  def test_revision_guard(self):
   cfg=sp.save(payload());row=sp.get_row(cfg['id']);sp.save({'name':'Alterado'},cfg['id']);day,sites=sp.parse_report(report())
   with self.assertRaises(sp.SafeError):sp.commit_report(row,day,sites)

@@ -48,8 +48,8 @@ services:
     - 127.0.0.1:3000:3000
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD__FILE: /etc/dunker/secrets/grafana_admin_password
-      GF_SECURITY_SECRET_KEY__FILE: /etc/dunker/secrets/grafana_secret_key
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /etc/dunker/generated/grafana_admin_password
+      GF_SECURITY_SECRET_KEY__FILE: /etc/dunker/generated/grafana_secret_key
       GF_SERVER_ROOT_URL: '%(protocol)s://%(domain)s:%(http_port)s/'
       GF_PATHS_PROVISIONING: /etc/dunker/grafana/provisioning
       GF_AUTH_ANONYMOUS_ENABLED: 'false'
@@ -64,9 +64,9 @@ services:
       GF_SERVER_ENFORCE_DOMAIN: 'false'
       GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: dunker-integracoes-app
     volumes:
-    - ./config/grafana/plugins/dunker-integracoes-app:/var/lib/grafana/plugins/dunker-integracoes-app:ro
     - ./config:/etc/dunker:ro
     - grafana_data:/var/lib/grafana
+    - ./config/grafana/plugins/dunker-integracoes-app:/var/lib/grafana/plugins/dunker-integracoes-app:ro
     depends_on:
     - prometheus
     - loki
@@ -111,25 +111,6 @@ services:
     - alertmanager_data:/alertmanager
     ports:
     - 127.0.0.1:9093:9093
-  blackbox:
-    restart: unless-stopped
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
-        max-file: '3'
-    security_opt:
-    - no-new-privileges:true
-    image: prom/blackbox-exporter:v0.28.0
-    command:
-    - --config.file=/etc/dunker/blackbox.yml
-    cap_add:
-    - NET_RAW
-    cap_drop:
-    - ALL
-    user: '0'
-    volumes:
-    - ./config:/etc/dunker:ro
   snmp:
     restart: unless-stopped
     logging:
@@ -166,8 +147,8 @@ services:
     cap_add:
     - NET_RAW
     volumes:
-    - ./runtime:/opt/dunker:ro
     - ./config:/etc/dunker:ro
+    - ./runtime:/opt/dunker:ro
     healthcheck:
       test:
       - CMD
@@ -211,11 +192,14 @@ services:
       VM_NAME: ${VM_NAME}
       PROM_WRITE_URL: http://prometheus:9090/api/v1/write
       LOKI_WRITE_URL: http://loki:3100/loki/api/v1/push
+      MONITOR_CLIENTE: DunkerIT
+      MONITOR_UNIDADE: Central
     volumes:
     - ./config:/etc/dunker:ro
     - alloy_data:/var/lib/alloy/data
     - /proc:/host/proc:ro
     - /sys:/host/sys:ro
+    - /:/host/root:ro
     ports:
     - ${SYSLOG_BIND:-127.0.0.1}:1514:1514/tcp
     - ${SYSLOG_BIND:-127.0.0.1}:1514:1514/udp
@@ -233,8 +217,6 @@ services:
     restart: unless-stopped
     environment:
       DNK_ADMIN_DATA: /etc/dunker/targets
-      ADMIN_PASSWORD_FILE: /etc/dunker/secrets/grafana_admin_password
-      BLACKBOX_URL: http://blackbox:9115
       DNK_ADMIN_PAGE: /etc/dunker/admin/index.html
       DNK_SNMP_PRIVATE: /etc/dunker/integracoes/private
       SNMP_URL: http://snmp:9116
@@ -243,15 +225,20 @@ services:
       DNK_GRAFANA_URL: http://grafana:3000
       DNK_GRAFANA_ORG_ID: ${GRAFANA_ORG_ID:-1}
       DNK_ACCESS_FILE: /etc/dunker/access/private/policy.json
+      DNK_CONFIG: /etc/dunker
+      DNK_PROM_URL: http://prometheus:9090
     volumes:
-    - ./runtime:/opt/dunker:ro
-    - ./config/access/private:/etc/dunker/access/private:rw
-    - ./config/sharepoint/private:/etc/dunker/sharepoint/private:ro
     - ./config:/etc/dunker:ro
     - ./config/targets:/etc/dunker/targets:rw
     - ./config/integracoes/private:/etc/dunker/integracoes/private:rw
+    - ./config/sharepoint/private:/etc/dunker/sharepoint/private:ro
+    - ./runtime:/opt/dunker:ro
+    - ./config/access/private:/etc/dunker/access/private:rw
+    - ./runtime:/opt/dunker:ro
+    - ./config/global:/etc/dunker/global:rw
+    - ./config/excluidos:/etc/dunker/excluidos:rw
+    - ./config/history:/etc/dunker/history:rw
     depends_on:
-    - blackbox
     - grafana
     security_opt:
     - no-new-privileges:true
@@ -282,9 +269,14 @@ services:
     environment:
       DNK_SP_PRIVATE: /data
       DNK_SP_PORT: '9430'
+      DNK_CONFIG: /etc/dunker
     volumes:
-    - ./runtime/sharepoint_collector.py:/opt/dunker/sharepoint_collector.py:ro
     - ./config/sharepoint/private:/data:rw
+    - ./runtime:/opt/dunker:ro
+    - ./config/global:/etc/dunker/global:rw
+    - ./config/excluidos:/etc/dunker/excluidos:rw
+    - ./config:/etc/dunker:ro
+    - ./config/history:/etc/dunker/history:rw
     cap_drop:
     - ALL
     security_opt:
@@ -303,30 +295,6 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-  sharepoint-prometheus:
-    image: prom/prometheus:v3.13.3
-    restart: unless-stopped
-    command:
-    - --config.file=/etc/dunker/sharepoint/prometheus.yml
-    - --storage.tsdb.path=/prometheus
-    - --storage.tsdb.retention.time=365d
-    - --storage.tsdb.retention.size=2GB
-    volumes:
-    - ./config/sharepoint/prometheus.yml:/etc/dunker/sharepoint/prometheus.yml:ro
-    - ./config/sharepoint/rules.yml:/etc/dunker/sharepoint/rules.yml:ro
-    - sharepoint_prometheus_data:/prometheus
-    depends_on:
-    - sharepoint
-    - alertmanager
-    cap_drop:
-    - ALL
-    security_opt:
-    - no-new-privileges:true
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m
-        max-file: '3'
 volumes:
   caddy_data: {}
   grafana_data: {}

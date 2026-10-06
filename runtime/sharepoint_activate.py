@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Enable the native app and remove the legacy token from its settings."""
+import global_config
 import base64,json,os,time,urllib.request,urllib.error
 from pathlib import Path
 private=Path(os.environ.get('DNK_SP_PRIVATE','/etc/dunker/sharepoint/private'))
-password=Path(os.environ.get('ADMIN_PASSWORD_FILE','/etc/dunker/secrets/grafana_admin_password')).read_text().strip()
+password=global_config.get('system','grafana_admin_password','')
 headers={'Content-Type':'application/json','Authorization':'Basic '+base64.b64encode(('admin:'+password).encode()).decode()}
 body=json.dumps({'enabled':True,'pinned':True,'jsonData':{},'secureJsonData':{'gatewayToken':''}}).encode()
 for attempt in range(30):

@@ -65,13 +65,16 @@ def number(value, field, low, high):
     return value
 
 def normalize(payload, current=None, previous_auth=None):
+    payload=dict(payload)
+    for old,new in (("Cliente","CLIENTE"),("Unidade","UNIDADE")):
+        if old in payload:payload[new]=payload.pop(old)
     current = current or {}
-    row = {k: current[k] for k in ('name','Cliente','Unidade','Provedor','host','port','vendor','model','firmware','interval_seconds','timeout_seconds','enabled','version','interfaces','cpu_oid','ram_oid') if k in current}
-    row.update({k:v for k,v in payload.items() if k in ('name','Cliente','Unidade','Provedor','host','port','vendor','model','firmware','interval_seconds','timeout_seconds','enabled','version','interfaces','cpu_oid','ram_oid')})
+    row = {k: current[k] for k in ('name','CLIENTE','UNIDADE','Provedor','host','port','vendor','model','firmware','interval_seconds','timeout_seconds','enabled','version','interfaces','cpu_oid','ram_oid') if k in current}
+    row.update({k:v for k,v in payload.items() if k in ('name','CLIENTE','UNIDADE','Provedor','host','port','vendor','model','firmware','interval_seconds','timeout_seconds','enabled','version','interfaces','cpu_oid','ram_oid')})
     row.update(id=current.get('id', str(uuid.uuid4())), tipo='snmp', managed_snmp=True)
-    for field in ('name','Cliente','Unidade','Provedor','model','firmware'):
+    for field in ('name','CLIENTE','UNIDADE','Provedor','model','firmware'):
         row[field] = str(row.get(field, '')).strip()[:180]
-    if not all(row[k] for k in ('name','Cliente','Unidade')):
+    if not all(row[k] for k in ('name','CLIENTE','UNIDADE')):
         raise ValueError('Preencha nome, cliente e unidade')
     row['Provedor'] = row['Provedor'] or 'Equipamento'
     row['host'] = validate_host(str(row.get('host','')).strip())
@@ -137,7 +140,7 @@ def document(rows,auths):
     modules=read_json(MODULES,{})
     if not modules: raise ValueError('Módulos SNMP não instalados')
     for row in rows:
-        if not row.get('managed_snmp'): continue
+        if not row.get('managed_snmp') or row.get('deleted_at'): continue
         if row.get('cpu_oid') or row.get('ram_oid'):
             metrics=[];gets=[]
             for field,name in (('cpu_oid','dnkCustomCPUPercent'),('ram_oid','dnkCustomRAMPercent')):
@@ -146,7 +149,7 @@ def document(rows,auths):
                     gets.append(oid)
                     metrics.append({'name':name,'oid':oid[:-2] if oid.endswith('.0') else oid,'type':'gauge','help':'Configured vendor utilization percent'})
             modules[row['health_module']]={'get':gets,'metrics':metrics,'timeout':'3s','retries':1}
-    return {'auths':{r['snmp_auth']:auths[r['id']] for r in rows if r.get('managed_snmp') and r['id'] in auths},'modules':modules}
+    return {'auths':{r['snmp_auth']:auths[r['id']] for r in rows if r.get('managed_snmp') and not r.get('deleted_at') and r['id'] in auths},'modules':modules}
 
 def reload_exporter():
     try:
@@ -170,7 +173,7 @@ def targets(rows,legacy):
     result=[x for x in legacy if x.get('labels',{}).get('managed_by')!='dnk']
     for r in rows:
         if not r.get('managed_snmp') or not r.get('enabled',True): continue
-        labels={k:str(r[k]) for k in ('Cliente','Unidade','Provedor','snmp_auth')}
+        labels={k:str(r[k]) for k in ('CLIENTE','UNIDADE','Provedor','snmp_auth')}
         labels.update(managed_by='dnk',monitor_id=r['id'],monitor_name=r['name'],vendor=r['vendor'],tipo='snmp',
                       __scrape_interval__=f"{r['interval_seconds']}s",__scrape_timeout__=f"{r['timeout_seconds']}s")
         result.append({'targets':[r['instance']],'labels':dict(labels,snmp_module=r['snmp_module'],snmp_scope='interfaces')})

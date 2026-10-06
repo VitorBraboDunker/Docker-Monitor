@@ -1,46 +1,34 @@
 #!/usr/bin/env python3
-import argparse,csv,ipaddress,json,os,tempfile
+"""Import client checks/servers while preserving IDs and recoverable removals."""
+import argparse,csv,json,os,sys,time,uuid
 from pathlib import Path
-from urllib.parse import urlparse
-BASE=Path(__file__).resolve().parents[1];TYPES={'icmp','snmp','http','tcp','windows','linux'};KEYS=['tipo','Cliente','Unidade','Provedor','instance']
-def atomic(path,value):
- fd,tmp=tempfile.mkstemp(dir=path.parent,prefix=path.name+'.')
- with os.fdopen(fd,'w',encoding='utf-8') as f:json.dump(value,f,indent=2,ensure_ascii=False);f.write('\n')
- os.chmod(tmp,0o644);os.replace(tmp,path)
+ROOT=Path(__file__).resolve().parents[1];sys.path.insert(0,str(ROOT/'runtime'))
+import admin_monitor as admin
+KEYS=('tipo','CLIENTE','UNIDADE','Provedor','instance')
 def load(path):
- with open(path,encoding='utf-8-sig',newline='') as f:
-  sample=f.read(4096);f.seek(0);delimiter=';' if ';' in sample.partition('\n')[0] else ',';rows=[];seen=set()
-  for line,row in enumerate(csv.DictReader(f,delimiter=delimiter),2):
-   row={k:(v or '').strip() for k,v in row.items() if k is not None}
+ with open(path,encoding='utf-8-sig',newline='') as stream:
+  sample=stream.read(4096);stream.seek(0);rows=[]
+  for line,row in enumerate(csv.DictReader(stream,delimiter=';' if ';' in sample.partition('\n')[0] else ','),2):
+   row={k:(v or '').strip() for k,v in row.items() if k}
+   for old,new in (('Cliente','CLIENTE'),('Unidade','UNIDADE')):
+    if old in row:row.setdefault(new,row.pop(old))
    if not any(row.values()):continue
    if any(not row.get(k) for k in KEYS):raise ValueError(f'Linha {line}: preencha '+', '.join(KEYS))
-   if row['tipo'] not in TYPES:raise ValueError(f'Linha {line}: tipo inválido.')
-   target=row['instance']
-   if row['tipo'] in ['icmp','snmp']:ipaddress.IPv4Address(target)
-   if row['tipo']=='http' and (urlparse(target).scheme not in ['https','http'] or not urlparse(target).hostname):raise ValueError(f'Linha {line}: URL inválida.')
-   if row['tipo']=='tcp':
-    host,sep,port=target.rpartition(':')
-    if not host or not sep or not port.isdigit() or not 1<=int(port)<=65535:raise ValueError(f'Linha {line}: use host:porta.')
-   if row['tipo']=='snmp':row['auth']=row.get('auth') or 'dunker_v2';row['module']=row.get('module') or 'if_mib,system'
-   key=tuple(row[k] for k in KEYS)
-   if key in seen:raise ValueError(f'Linha {line}: alvo duplicado.')
-   seen.add(key);rows.append(row)
+   if row['tipo']=='snmp':raise ValueError(f'Linha {line}: cadastre SNMP pela central Grafana para separar credenciais e descobrir interfaces')
+   if row['tipo'] not in admin.SUPPORTED|{'linux','windows'}:raise ValueError(f'Linha {line}: tipo inválido')
+   row['name']=row.get('name') or row['instance'];rows.append({k:v for k,v in row.items() if k in set(KEYS)|{'name'}})
  return rows
 if __name__=='__main__':
- p=argparse.ArgumentParser(description='Substitui todo o inventário ativo pelo conteúdo do CSV.');p.add_argument('csv',nargs='?',default=str(BASE/'inventario.csv'));a=p.parse_args()
- try:rows=load(a.csv)
- except (ValueError,OSError) as e:p.error(str(e))
- import sys
- sys.path.insert(0,str(BASE/'runtime'))
- from admin_monitor import normalize
- rows=[normalize(dict(r,name=r.get('name',r['instance']))) if r['tipo']=='icmp' else r for r in rows]
- for typ in ['icmp','snmp','http','tcp']:
-  targets=[]
-  for row in rows:
-   if row['tipo']!=typ:continue
-   labels={k:row[k] for k in ['Cliente','Unidade','Provedor']}
-   if typ=='icmp':labels.update(monitor_id=row['id'],monitor_name=row['name'])
-   if typ=='snmp':labels.update(snmp_auth=row['auth'],snmp_module=row['module'])
-   targets.append({'targets':[row['instance']],'labels':labels})
-  atomic(BASE/'config/targets'/f'{typ}.json',targets)
- atomic(BASE/'config/targets/inventory.json',rows);print(f'{len(rows)} alvos cadastrados. Atualização em até 60 segundos.')
+ parser=argparse.ArgumentParser(description='Importa/atualiza itens sem apagar cadastros existentes. Exclusões pela central.');parser.add_argument('csv',nargs='?',default=str(ROOT/'inventario.csv'));args=parser.parse_args()
+ admin.DATA_DIR=ROOT/'config/targets';admin.INVENTORY=admin.DATA_DIR/'inventory.json'
+ try:
+  incoming=load(args.csv);rows=admin.load_inventory()
+  for item in incoming:
+   previous=next((r for r in rows if not r.get('deleted_at') and all(r.get(k)==item[k] for k in KEYS)),None)
+   if item['tipo'] in admin.SUPPORTED:row=admin.normalize(item,previous)
+   else:row={**item,'id':previous['id'] if previous else str(uuid.uuid4()),'enabled':previous.get('enabled',True) if previous else True,'items':['cpu','memory','disk','network']}
+   if previous:rows[rows.index(previous)]=row
+   else:rows.append(row)
+  admin.persist(rows)
+ except (ValueError,OSError) as exc:parser.error(str(exc))
+ print(f'{len(incoming)} itens importados. Cadastros existentes e Itens Excluídos preservados.')

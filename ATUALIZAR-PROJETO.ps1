@@ -38,23 +38,21 @@ if($names.Count -eq 1){$argsApply+=@('--compose-name',$names[0])}
 Manager $argsApply
 Push-Location -LiteralPath $root
 try{
- $pending=Join-Path $root 'config/secrets/ingest_hash.pending'
+ $pending=Join-Path $root 'config/generated/ingest_hash.pending'
  if(Test-Path -LiteralPath $pending){
-  $ingestPassword=[IO.File]::ReadAllText((Join-Path $root 'config/secrets/ingest_password')).Trim()
+  $ingestPassword=[IO.File]::ReadAllText((Join-Path $root 'config/generated/ingest_password')).Trim()
   $hashOutput=& docker run --rm --entrypoint caddy caddy:2.11.4 hash-password --plaintext $ingestPassword
   $ingestPassword=$null
   if($LASTEXITCODE -ne 0){throw 'Falha ao preparar autenticacao Caddy.'}
   $hash=($hashOutput|Where-Object{$_ -match '^\$2[aby]\$'})|Select-Object -Last 1
   if(!$hash){throw 'Caddy nao devolveu um hash valido.'}
-  [IO.File]::WriteAllText((Join-Path $root 'config/secrets/ingest_hash'),$hash+"`n",(New-Object System.Text.UTF8Encoding($false)))
+  [IO.File]::WriteAllText((Join-Path $root 'config/generated/ingest_hash'),$hash+"`n",(New-Object System.Text.UTF8Encoding($false)))
   Manager @('finalize-hash')
  }
  & docker compose -f compose.separado.yaml config --quiet
  if($LASTEXITCODE -ne 0){throw 'Compose consolidado invalido.'}
  & docker compose -f compose.separado.yaml run --rm --no-deps --entrypoint /bin/promtool prometheus check config /etc/dunker/prometheus/separado.yml
  if($LASTEXITCODE -ne 0){throw 'Configuracao/regras do Prometheus principal invalidas.'}
- & docker compose -f compose.separado.yaml run --rm --no-deps --entrypoint /bin/promtool sharepoint-prometheus check config /etc/dunker/sharepoint/prometheus.yml
- if($LASTEXITCODE -ne 0){throw 'Configuracao/regras do SharePoint invalidas.'}
  & docker compose -f compose.separado.yaml run --rm --no-deps --entrypoint caddy caddy validate --config /etc/dunker/caddy/Caddyfile --adapter caddyfile
  if($LASTEXITCODE -ne 0){throw 'Caddyfile invalido.'}
 }catch{
@@ -66,7 +64,7 @@ try{
 # After a partial startup, retain applied files for consistent recovery.
 Push-Location -LiteralPath $root
 try{
- & docker compose -f compose.separado.yaml up -d --no-build
+ & docker compose -f compose.separado.yaml up -d --no-build --remove-orphans
  if($LASTEXITCODE -ne 0){throw "Arquivos preparados, mas algum container nao iniciou. Confira $report e docker compose -f compose.separado.yaml logs --tail 100. O backup foi preservado."}
  & docker compose -f compose.separado.yaml restart
  if($LASTEXITCODE -ne 0){throw 'Falha ao reiniciar os servicos para carregar os arquivos atualizados. Confira os logs.'}
@@ -77,4 +75,4 @@ try{
 $after=@(Get-DunkerInventory $root);Write-DockerReport $report 'depois' $after
 Manager @('inspect','--output',('/projeto/'+$reportRelative),'--stage','depois')
 Write-Host "Projeto completo atualizado. Revisao antes/depois: $report"
-Write-Host 'Agora use somente compose.separado.yaml. Credenciais novas, se criadas, estao em config/secrets; guarde no seu cofre.'
+Write-Host 'Agora use somente compose.separado.yaml. Credenciais novas, se criadas, estao em config/global/credentials.json; guarde no seu cofre.'

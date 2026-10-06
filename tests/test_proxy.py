@@ -2,6 +2,7 @@ import base64,http.server,json,sys,tempfile,threading,unittest,urllib.request,ur
 from pathlib import Path
 from unittest.mock import patch
 PACKAGE=Path(__file__).resolve().parents[1];sys.path.insert(0,str(PACKAGE/'runtime'))
+import global_config
 import sharepoint_collector as sp,sharepoint_proxy as proxy
 class Proxy(unittest.TestCase):
  def test_authenticated_forwarder_and_assets(self):
@@ -23,7 +24,7 @@ class Proxy(unittest.TestCase):
    threads=[threading.Thread(target=s.serve_forever,daemon=True) for s in (backend,front)]
    for t in threads:t.start()
    try:
-    with patch.object(proxy,'PRIVATE',private),patch.object(proxy,'UPSTREAM',f'http://127.0.0.1:{backend.server_port}'),patch.dict('os.environ',{'DNK_ADMIN_PAGE':str(PACKAGE/'config/admin/index.html')}):
+    with patch.object(global_config,'get',return_value='LOCAL-TEST-TOKEN'),patch.object(proxy,'PRIVATE',private),patch.object(proxy,'UPSTREAM',f'http://127.0.0.1:{backend.server_port}'),patch.dict('os.environ',{'DNK_ADMIN_PAGE':str(PACKAGE/'config/admin/index.html')}):
      url=f'http://127.0.0.1:{front.server_port}'
      with self.assertRaises(urllib.error.HTTPError):urllib.request.urlopen(url+'/api/sharepoint/tenants')
      with urllib.request.urlopen(urllib.request.Request(url+'/api/sharepoint/tenants',headers={'Authorization':'Basic TEST'})) as r:data=json.load(r)

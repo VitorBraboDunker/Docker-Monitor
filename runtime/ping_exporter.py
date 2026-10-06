@@ -34,9 +34,9 @@ def probe(address,count=5,timeout=5.,packet_interval=1.):
 def inventory():
  with open(INVENTORY,encoding='utf-8') as f:return json.load(f)
 def label_string(row):
- values={k:row[k] for k in ['Cliente','Unidade','Provedor','instance','tipo']};values.update(monitor_id=row.get('id',''),monitor_name=row.get('name',row['instance']))
+ values={k:row[k] for k in ['CLIENTE','UNIDADE','Provedor','instance','tipo']};values.update(monitor_id=row.get('id',''),monitor_name=row.get('name',row['instance']))
  return '{'+','.join(k+'='+json.dumps(str(v),ensure_ascii=False) for k,v in values.items())+'}'
-def row_id(row):return row.get('id') or '|'.join(str(row.get(k,'')) for k in ['Cliente','Unidade','Provedor','instance','tipo'])
+def row_id(row):return row.get('id') or '|'.join(str(row.get(k,'')) for k in ['CLIENTE','UNIDADE','Provedor','instance','tipo'])
 def probe_row(row):
  if row['tipo']!='icmp':
   from monitor_probes import probe_service
@@ -50,7 +50,7 @@ def collect():
  with futures.ThreadPoolExecutor(max_workers=32) as pool:
   while not STOP.is_set():
    try:
-    rows=[r for r in inventory() if r['tipo'] in ('icmp','http','tcp','dns') and r.get('enabled',True)]
+    rows=[r for r in inventory() if r['tipo'] in ('icmp','http','tcp','dns') and r.get('enabled',True) and not r.get('deleted_at')]
     now=time.monotonic();active={row_id(r):r for r in rows}
     with LOCK:
      labels={label_string(r) for r in rows}
@@ -74,7 +74,7 @@ def collect():
     with LOCK:LAST_ERROR=1
    STOP.wait(1)
 def render_metrics():
- try:rows=[r for r in inventory() if r.get('enabled',True)]
+ try:rows=[r for r in inventory() if r.get('enabled',True) and not r.get('deleted_at')]
  except (OSError,ValueError):rows=[]
  out=['# TYPE dnk_target_expected gauge']+['dnk_target_expected'+label_string(r)+' 1' for r in rows]
  for r in rows:

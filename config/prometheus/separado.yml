@@ -15,71 +15,45 @@ scrape_configs:
   static_configs:
   - targets:
     - prometheus:9090
+  metric_relabel_configs:
+  - source_labels:
+    - CLIENTE
+    - Cliente
+    separator: ;
+    regex: ;(.+)
+    target_label: CLIENTE
+    replacement: $1
+  - source_labels:
+    - UNIDADE
+    - Unidade
+    separator: ;
+    regex: ;(.+)
+    target_label: UNIDADE
+    replacement: $1
+  - action: labeldrop
+    regex: Cliente|Unidade
 - job_name: dunker_inventory
   honor_labels: true
   static_configs:
   - targets:
     - ping:9427
-- job_name: blackbox_icmp
-  metrics_path: /probe
-  params:
-    module:
-    - icmp_ipv4
-  scrape_interval: 15s
-  scrape_timeout: 7s
-  file_sd_configs:
-  - files:
-    - /etc/dunker/targets/icmp.json
-    refresh_interval: 30s
-  relabel_configs:
+  metric_relabel_configs:
   - source_labels:
-    - __address__
-    target_label: __param_target
+    - CLIENTE
+    - Cliente
+    separator: ;
+    regex: ;(.+)
+    target_label: CLIENTE
+    replacement: $1
   - source_labels:
-    - __param_target
-    target_label: instance
-  - target_label: __address__
-    replacement: blackbox:9115
-- job_name: blackbox_http
-  metrics_path: /probe
-  params:
-    module:
-    - http_2xx
-  scrape_interval: 15s
-  scrape_timeout: 7s
-  file_sd_configs:
-  - files:
-    - /etc/dunker/targets/http.json
-    refresh_interval: 30s
-  relabel_configs:
-  - source_labels:
-    - __address__
-    target_label: __param_target
-  - source_labels:
-    - __param_target
-    target_label: instance
-  - target_label: __address__
-    replacement: blackbox:9115
-- job_name: blackbox_tcp
-  metrics_path: /probe
-  params:
-    module:
-    - tcp_connect
-  scrape_interval: 15s
-  scrape_timeout: 7s
-  file_sd_configs:
-  - files:
-    - /etc/dunker/targets/tcp.json
-    refresh_interval: 30s
-  relabel_configs:
-  - source_labels:
-    - __address__
-    target_label: __param_target
-  - source_labels:
-    - __param_target
-    target_label: instance
-  - target_label: __address__
-    replacement: blackbox:9115
+    - UNIDADE
+    - Unidade
+    separator: ;
+    regex: ;(.+)
+    target_label: UNIDADE
+    replacement: $1
+  - action: labeldrop
+    regex: Cliente|Unidade
 - job_name: snmp
   metrics_path: /snmp
   scrape_interval: 60s
@@ -105,23 +79,148 @@ scrape_configs:
     replacement: snmp:9116
   - action: labeldrop
     regex: snmp_auth|snmp_module
-- job_name: exporter_blackbox
-  static_configs:
-  - targets:
-    - blackbox:9115
+  metric_relabel_configs:
+  - source_labels:
+    - CLIENTE
+    - Cliente
+    separator: ;
+    regex: ;(.+)
+    target_label: CLIENTE
+    replacement: $1
+  - source_labels:
+    - UNIDADE
+    - Unidade
+    separator: ;
+    regex: ;(.+)
+    target_label: UNIDADE
+    replacement: $1
+  - action: labeldrop
+    regex: Cliente|Unidade
 - job_name: exporter_snmp
   static_configs:
   - targets:
     - snmp:9116
+  metric_relabel_configs:
+  - source_labels:
+    - CLIENTE
+    - Cliente
+    separator: ;
+    regex: ;(.+)
+    target_label: CLIENTE
+    replacement: $1
+  - source_labels:
+    - UNIDADE
+    - Unidade
+    separator: ;
+    regex: ;(.+)
+    target_label: UNIDADE
+    replacement: $1
+  - action: labeldrop
+    regex: Cliente|Unidade
 - job_name: exporter_alloy
   static_configs:
   - targets:
     - alloy:12345
+  metric_relabel_configs:
+  - source_labels:
+    - CLIENTE
+    - Cliente
+    separator: ;
+    regex: ;(.+)
+    target_label: CLIENTE
+    replacement: $1
+  - source_labels:
+    - UNIDADE
+    - Unidade
+    separator: ;
+    regex: ;(.+)
+    target_label: UNIDADE
+    replacement: $1
+  - action: labeldrop
+    regex: Cliente|Unidade
 - job_name: exporter_loki
   static_configs:
   - targets:
     - loki:3100
+  metric_relabel_configs:
+  - source_labels:
+    - CLIENTE
+    - Cliente
+    separator: ;
+    regex: ;(.+)
+    target_label: CLIENTE
+    replacement: $1
+  - source_labels:
+    - UNIDADE
+    - Unidade
+    separator: ;
+    regex: ;(.+)
+    target_label: UNIDADE
+    replacement: $1
+  - action: labeldrop
+    regex: Cliente|Unidade
 - job_name: exporter_alertmanager
   static_configs:
   - targets:
     - alertmanager:9093
+  metric_relabel_configs:
+  - source_labels:
+    - CLIENTE
+    - Cliente
+    separator: ;
+    regex: ;(.+)
+    target_label: CLIENTE
+    replacement: $1
+  - source_labels:
+    - UNIDADE
+    - Unidade
+    separator: ;
+    regex: ;(.+)
+    target_label: UNIDADE
+    replacement: $1
+  - action: labeldrop
+    regex: Cliente|Unidade
+- job_name: dunker_status
+  honor_labels: true
+  static_configs:
+  - targets:
+    - admin:8080
+  metric_relabel_configs:
+  - source_labels:
+    - CLIENTE
+    - Cliente
+    separator: ;
+    regex: ;(.+)
+    target_label: CLIENTE
+    replacement: $1
+  - source_labels:
+    - UNIDADE
+    - Unidade
+    separator: ;
+    regex: ;(.+)
+    target_label: UNIDADE
+    replacement: $1
+  - action: labeldrop
+    regex: Cliente|Unidade
+- job_name: sharepoint
+  honor_labels: true
+  static_configs:
+  - targets:
+    - sharepoint:9430
+  metric_relabel_configs:
+  - source_labels:
+    - CLIENTE
+    - Cliente
+    separator: ;
+    regex: ;(.+)
+    target_label: CLIENTE
+    replacement: $1
+  - source_labels:
+    - UNIDADE
+    - Unidade
+    separator: ;
+    regex: ;(.+)
+    target_label: UNIDADE
+    replacement: $1
+  - action: labeldrop
+    regex: Cliente|Unidade

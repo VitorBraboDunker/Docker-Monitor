@@ -1,406 +1,213 @@
 {
   "uid": "dnk-sharepoint-detalhes",
-  "title": "Dunker · SharePoint · Detalhes",
+  "title": "Dunker | Cliente — SharePoint Detalhados",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
+  "editable": false,
   "tags": [
     "Dunker",
-    "SharePoint",
-    "Microsoft 365"
+    "v1.0",
+    "CLIENTE",
+    "UNIDADE"
   ],
   "timezone": "browser",
-  "refresh": "5m",
+  "refresh": "30s",
   "time": {
-    "from": "now-30d",
+    "from": "now-6h",
     "to": "now"
   },
-  "timepicker": {
-    "refresh_intervals": [
-      "5m",
-      "15m",
-      "1h"
-    ],
-    "time_options": [
-      "7d",
-      "30d",
-      "90d",
-      "180d",
-      "365d"
-    ]
-  },
+  "links": [
+    {
+      "title": "← Todos os clientes · SharePoint",
+      "url": "/d/dnk-sharepoint-geral",
+      "type": "link",
+      "keepTime": true
+    },
+    {
+      "title": "Desempenho geral",
+      "url": "/d/dnk-conformidade",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Links",
+      "url": "/d/dnk-links-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Firewalls",
+      "url": "/d/dnk-firewalls-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Servidores",
+      "url": "/d/dnk-servidores-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "SharePoint",
+      "url": "/d/dnk-sharepoint-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Domínios",
+      "url": "/d/dnk-dominios",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Configurações",
+      "type": "link",
+      "url": "/a/dunker-integracoes-app/links"
+    }
+  ],
   "templating": {
     "list": [
       {
-        "name": "Cliente",
+        "name": "CLIENTE",
         "label": "Cliente",
         "type": "query",
         "datasource": {
           "type": "prometheus",
-          "uid": "dnk-sharepoint"
+          "uid": "dnk-prometheus"
         },
         "query": {
-          "query": "label_values(dnk_sharepoint_enabled, Cliente)",
-          "refId": "Clientes"
+          "query": "label_values(dnk_asset_info{category=\"sharepoint\"}, CLIENTE)",
+          "refId": "CLIENTE"
         },
-        "definition": "label_values(dnk_sharepoint_enabled, Cliente)",
-        "refresh": 1,
+        "definition": "label_values(dnk_asset_info{category=\"sharepoint\"}, CLIENTE)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": false,
+        "includeAll": false,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "UNIDADE",
+        "label": "Unidade",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": {
+          "query": "label_values(dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\"}, UNIDADE)",
+          "refId": "UNIDADE"
+        },
+        "definition": "label_values(dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\"}, UNIDADE)",
+        "refresh": 2,
+        "sort": 1,
         "multi": true,
         "includeAll": true,
-        "allValue": ".*",
+        "options": [],
         "current": {
-          "text": "All",
+          "text": "Todos",
           "value": "$__all"
         },
+        "allValue": ".*"
+      },
+      {
+        "name": "asset_id",
+        "label": "Integrações",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": {
+          "query": "query_result(max by (asset_id,name) (dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\"}))",
+          "refId": "asset_id"
+        },
+        "definition": "query_result(max by (asset_id,name) (dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\"}))",
+        "refresh": 2,
         "sort": 1,
-        "options": []
+        "multi": true,
+        "includeAll": true,
+        "options": [],
+        "current": {
+          "text": "Todos",
+          "value": "$__all"
+        },
+        "allValue": ".*",
+        "regex": "/asset_id=\"(?<value>[^\"]+)\".*name=\"(?<text>[^\"]+)\"/"
       }
     ]
   },
-  "links": [
-    {
-      "title": "Configurar SharePoint",
-      "type": "link",
-      "url": "/a/dunker-integracoes-app/sharepoint",
-      "targetBlank": false
-    },
-    {
-      "title": "Central de integrações",
-      "type": "link",
-      "url": "/a/dunker-integracoes-app/sharepoint",
-      "targetBlank": false
-    },
-    {
-      "title": "Visão geral",
-      "type": "link",
-      "url": "/d/dnk-sharepoint-geral",
-      "includeVars": true
-    },
-    {
-      "title": "Detalhes",
-      "type": "link",
-      "url": "/d/dnk-sharepoint-detalhes",
-      "includeVars": true
-    }
-  ],
   "panels": [
     {
-      "id": 1,
-      "title": "Espaço usado",
-      "type": "stat",
+      "id": 107,
+      "type": "text",
+      "title": "Cliente — SharePoint",
       "gridPos": {
         "x": 0,
         "y": 0,
-        "w": 5,
+        "w": 24,
         "h": 4
       },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-sharepoint"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(dnk_sharepoint_tenant_used_bytes{Cliente=~\"$Cliente\"})",
-          "legendFormat": "{{Cliente}}",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "bytes"
-        },
-        "overrides": []
-      },
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center"
+        "mode": "markdown",
+        "content": "Resumo de **todas as unidades do cliente** no topo. Os filtros Unidade e Integrações controlam as seções abaixo; por padrão todos os ativos são exibidos. Expanda cada seção para ver os gráficos.\n\n**Verde:** OK · **Cinza:** Sem Dados · **Amarelo:** Atenção · **Vermelho:** Grave · **Roxo:** Crítico · **Preto:** Pausado."
       }
     },
     {
-      "id": 2,
-      "title": "Capacidade cadastrada",
+      "id": 108,
       "type": "stat",
-      "gridPos": {
-        "x": 5,
-        "y": 0,
-        "w": 5,
-        "h": 4
-      },
+      "title": "Estado do cliente",
       "datasource": {
         "type": "prometheus",
-        "uid": "dnk-sharepoint"
+        "uid": "dnk-prometheus"
       },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(dnk_sharepoint_capacity_bytes{Cliente=~\"$Cliente\"} > 0)",
-          "legendFormat": "{{Cliente}}",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "bytes"
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center"
-      }
-    },
-    {
-      "id": 3,
-      "title": "Espaço livre (capacidade informada)",
-      "type": "stat",
-      "gridPos": {
-        "x": 10,
-        "y": 0,
-        "w": 5,
-        "h": 4
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-sharepoint"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(dnk_sharepoint_free_bytes{Cliente=~\"$Cliente\"})",
-          "legendFormat": "{{Cliente}}",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "bytes"
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center"
-      }
-    },
-    {
-      "id": 4,
-      "title": "Maior ocupação entre tenants",
-      "type": "stat",
-      "gridPos": {
-        "x": 15,
-        "y": 0,
-        "w": 5,
-        "h": 4
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-sharepoint"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "max(dnk_sharepoint_utilization_percent{Cliente=~\"$Cliente\"})",
-          "legendFormat": "{{Cliente}}",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center"
-      }
-    },
-    {
-      "id": 5,
-      "title": "Sites ativos",
-      "type": "stat",
-      "gridPos": {
-        "x": 20,
-        "y": 0,
-        "w": 4,
-        "h": 4
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-sharepoint"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(dnk_sharepoint_site_count{Cliente=~\"$Cliente\"})",
-          "legendFormat": "{{Cliente}}",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center"
-      }
-    },
-    {
-      "id": 6,
-      "title": "Situação do cliente",
-      "type": "stat",
       "gridPos": {
         "x": 0,
         "y": 4,
         "w": 6,
         "h": 4
       },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-sharepoint"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "max(dnk_sharepoint_state{Cliente=~\"$Cliente\"} != 5) or max(dnk_sharepoint_state{Cliente=~\"$Cliente\"})",
-          "legendFormat": "{{Cliente}}",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ],
       "fieldConfig": {
         "defaults": {
+          "unit": "none",
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              },
+              {
+                "color": "#8e959f",
+                "value": 1
+              },
+              {
+                "color": "#f2cc0c",
+                "value": 2
+              },
+              {
+                "color": "#e02f44",
+                "value": 3
+              },
+              {
+                "color": "#a64dd8",
+                "value": 4
+              },
+              {
+                "color": "#000000",
+                "value": 5
+              }
+            ]
           },
           "mappings": [
             {
@@ -408,700 +215,2086 @@
               "options": {
                 "0": {
                   "text": "OK",
-                  "color": "green",
+                  "color": "#299c46",
                   "index": 0
                 },
                 "1": {
-                  "text": "Atenção",
-                  "color": "yellow",
+                  "text": "Sem Dados",
+                  "color": "#8e959f",
                   "index": 1
                 },
                 "2": {
-                  "text": "Crítico",
-                  "color": "orange",
+                  "text": "Atenção",
+                  "color": "#f2cc0c",
                   "index": 2
                 },
                 "3": {
-                  "text": "Emergência",
-                  "color": "red",
+                  "text": "Grave",
+                  "color": "#e02f44",
                   "index": 3
                 },
                 "4": {
-                  "text": "Dados indisponíveis",
-                  "color": "#808b9b",
+                  "text": "Crítico",
+                  "color": "#a64dd8",
                   "index": 4
                 },
                 "5": {
-                  "text": "Capacidade não informada",
-                  "color": "#5794f2",
+                  "text": "Pausado",
+                  "color": "#000000",
                   "index": 5
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "Sem Dados",
+                  "color": "#8e959f"
                 }
               }
             }
           ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
+          "noValue": "Sem Dados"
         },
         "overrides": []
       },
+      "targets": [
+        {
+          "expr": "dnk_client_category_status{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\"}",
+          "refId": "A",
+          "legendFormat": "{{CLIENTE}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
       "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "values": true,
+          "fields": ""
         },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center"
+        "wideLayout": true
       }
     },
     {
-      "id": 7,
-      "title": "Data mais antiga do relatório (UTC)",
+      "id": 109,
       "type": "stat",
+      "title": "Integrações cadastrados",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
       "gridPos": {
         "x": 6,
         "y": 4,
         "w": 6,
         "h": 4
       },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-sharepoint"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "min(dnk_sharepoint_report_timestamp_seconds{Cliente=~\"$Cliente\"}) * 1000",
-          "legendFormat": "{{Cliente}}",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ],
       "fieldConfig": {
         "defaults": {
+          "unit": "none",
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
-          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#299c46",
                 "value": null
               }
             ]
           },
-          "unit": "dateTimeAsIso"
+          "mappings": [],
+          "noValue": "Sem Dados"
         },
         "overrides": []
       },
+      "targets": [
+        {
+          "expr": "dnk_client_category_assets{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\"}",
+          "refId": "A",
+          "legendFormat": "{{CLIENTE}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
       "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "values": true,
+          "fields": ""
         },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center"
+        "wideLayout": true
       }
     },
     {
-      "id": 8,
-      "title": "Última coleta bem-sucedida mais antiga",
+      "id": 110,
       "type": "stat",
+      "title": "Integrações com problemas",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
       "gridPos": {
         "x": 12,
         "y": 4,
         "w": 6,
         "h": 4
       },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-sharepoint"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "min(dnk_sharepoint_last_success_timestamp_seconds{Cliente=~\"$Cliente\"}) * 1000",
-          "legendFormat": "{{Cliente}}",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ],
       "fieldConfig": {
         "defaults": {
+          "unit": "none",
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
-          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#299c46",
                 "value": null
               }
             ]
           },
-          "unit": "dateTimeAsIso"
+          "mappings": [],
+          "noValue": "Sem Dados"
         },
         "overrides": []
       },
+      "targets": [
+        {
+          "expr": "count((dnk_asset_status{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\"} >= 2) < 5) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{CLIENTE}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
       "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "values": true,
+          "fields": ""
         },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center"
+        "wideLayout": true
       }
     },
     {
-      "id": 9,
-      "title": "Menor estimativa até esgotar",
+      "id": 111,
       "type": "stat",
+      "title": "Integrações sem dados",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
       "gridPos": {
         "x": 18,
         "y": 4,
         "w": 6,
         "h": 4
       },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-sharepoint"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "min(dnk_sharepoint_estimated_days_to_full{Cliente=~\"$Cliente\"})",
-          "legendFormat": "{{Cliente}}",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ],
       "fieldConfig": {
         "defaults": {
+          "unit": "none",
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
-          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#299c46",
                 "value": null
               }
             ]
           },
-          "unit": "d"
+          "mappings": [],
+          "noValue": "Sem Dados"
         },
         "overrides": []
       },
+      "targets": [
+        {
+          "expr": "count(dnk_asset_status{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\"} == 1) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{CLIENTE}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
       "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "values": true,
+          "fields": ""
         },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center"
+        "wideLayout": true
       }
     },
     {
-      "id": 10,
-      "title": "Crescimento em 7 dias",
+      "id": 112,
       "type": "stat",
+      "title": "Ativos habilitados em OK",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
       "gridPos": {
         "x": 0,
         "y": 8,
-        "w": 6,
+        "w": 8,
         "h": 4
       },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-sharepoint"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(dnk_sharepoint_growth_7d_bytes{Cliente=~\"$Cliente\"})",
-          "legendFormat": "{{Cliente}}",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ],
       "fieldConfig": {
         "defaults": {
+          "unit": "percent",
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
-          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#299c46",
                 "value": null
               }
             ]
           },
-          "unit": "bytes"
+          "mappings": [],
+          "noValue": "Sem Dados"
         },
         "overrides": []
       },
+      "targets": [
+        {
+          "expr": "100 * (count(dnk_asset_status{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\"} == 0) or vector(0)) / (count(dnk_asset_status{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\"} != 5) > 0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
       "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "values": true,
+          "fields": ""
         },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center"
+        "wideLayout": true
       }
     },
     {
-      "id": 11,
-      "title": "Crescimento em 30 dias",
+      "id": 113,
       "type": "stat",
-      "gridPos": {
-        "x": 6,
-        "y": 8,
-        "w": 6,
-        "h": 4
-      },
+      "title": "Monitoramento pausado",
       "datasource": {
         "type": "prometheus",
-        "uid": "dnk-sharepoint"
+        "uid": "dnk-prometheus"
       },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(dnk_sharepoint_growth_30d_bytes{Cliente=~\"$Cliente\"})",
-          "legendFormat": "{{Cliente}}",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ],
+      "gridPos": {
+        "x": 8,
+        "y": 8,
+        "w": 8,
+        "h": 4
+      },
       "fieldConfig": {
         "defaults": {
+          "unit": "none",
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
-          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#299c46",
                 "value": null
               }
             ]
           },
-          "unit": "bytes"
+          "mappings": [],
+          "noValue": "Sem Dados"
         },
         "overrides": []
       },
+      "targets": [
+        {
+          "expr": "count(dnk_asset_status{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\"} == 5) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
       "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "values": true,
+          "fields": ""
         },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center"
+        "wideLayout": true
       }
     },
     {
-      "id": 12,
-      "title": "Consumo dos sites selecionados",
+      "id": 114,
       "type": "stat",
-      "gridPos": {
-        "x": 12,
-        "y": 8,
-        "w": 6,
-        "h": 4
-      },
+      "title": "Ativos habilitados",
       "datasource": {
         "type": "prometheus",
-        "uid": "dnk-sharepoint"
+        "uid": "dnk-prometheus"
       },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sum(dnk_sharepoint_selected_used_bytes{Cliente=~\"$Cliente\"})",
-          "legendFormat": "{{Cliente}}",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ],
+      "gridPos": {
+        "x": 16,
+        "y": 8,
+        "w": 8,
+        "h": 4
+      },
       "fieldConfig": {
         "defaults": {
+          "unit": "none",
           "color": {
-            "mode": "palette-classic"
+            "mode": "thresholds"
           },
-          "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "#299c46",
                 "value": null
               }
             ]
           },
-          "unit": "bytes"
+          "mappings": [],
+          "noValue": "Sem Dados"
         },
         "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center"
-      }
-    },
-    {
-      "id": 13,
-      "title": "Integrações sem capacidade cadastrada",
-      "type": "stat",
-      "gridPos": {
-        "x": 18,
-        "y": 8,
-        "w": 6,
-        "h": 4
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-sharepoint"
       },
       "targets": [
         {
+          "expr": "count(dnk_asset_status{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\"} != 5) or vector(0)",
           "refId": "A",
-          "expr": "sum((dnk_sharepoint_capacity_bytes{Cliente=~\"$Cliente\"} == bool 0))",
-          "legendFormat": "{{Cliente}}",
+          "legendFormat": "{{name}}",
           "instant": true,
-          "range": false,
           "format": "time_series"
         }
       ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
       "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "values": true,
+          "fields": ""
         },
-        "orientation": "auto",
-        "textMode": "auto",
-        "colorMode": "value",
-        "graphMode": "none",
-        "justifyMode": "center"
+        "wideLayout": true
       }
     },
     {
-      "id": 14,
-      "title": "Uso e capacidade ao longo do tempo",
-      "type": "timeseries",
+      "id": 138,
+      "type": "row",
+      "title": "${asset_id:text} — detalhes técnicos",
+      "collapsed": true,
+      "repeat": "asset_id",
       "gridPos": {
         "x": 0,
         "y": 12,
         "w": 24,
-        "h": 9
+        "h": 1
       },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-sharepoint"
-      },
-      "targets": [
+      "panels": [
         {
-          "refId": "A",
-          "expr": "sum(dnk_sharepoint_tenant_used_bytes{Cliente=~\"$Cliente\"})",
-          "legendFormat": "Uso reportado",
-          "instant": false,
-          "range": true,
-          "format": "time_series"
-        },
-        {
-          "refId": "B",
-          "expr": "sum(dnk_sharepoint_capacity_bytes{Cliente=~\"$Cliente\"} > 0)",
-          "legendFormat": "Capacidade manual",
-          "range": true,
-          "instant": false
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
+          "id": 115,
+          "type": "stat",
+          "title": "Estado do ativo",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
           },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
+          "gridPos": {
+            "x": 0,
+            "y": 13,
+            "w": 6,
+            "h": 5
           },
-          "unit": "bytes",
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "stepAfter",
-            "lineWidth": 2,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      }
-    },
-    {
-      "id": 15,
-      "title": "Sites selecionados · histórico de consumo",
-      "type": "timeseries",
-      "gridPos": {
-        "x": 0,
-        "y": 21,
-        "w": 24,
-        "h": 9
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-sharepoint"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "dnk_sharepoint_site_used_bytes{Cliente=~\"$Cliente\"}",
-          "legendFormat": "{{site_name}} · {{monitor_name}}",
-          "instant": false,
-          "range": true,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "bytes",
-          "custom": {
-            "drawStyle": "line",
-            "lineInterpolation": "stepAfter",
-            "lineWidth": 2,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      }
-    },
-    {
-      "id": 16,
-      "title": "Sites que mais consomem espaço",
-      "type": "table",
-      "gridPos": {
-        "x": 0,
-        "y": 30,
-        "w": 24,
-        "h": 10
-      },
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-sharepoint"
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "sort_desc(dnk_sharepoint_site_used_bytes{Cliente=~\"$Cliente\"})",
-          "legendFormat": "{{Cliente}}",
-          "instant": true,
-          "range": false,
-          "format": "table"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Uso"
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  },
+                  {
+                    "color": "#8e959f",
+                    "value": 1
+                  },
+                  {
+                    "color": "#f2cc0c",
+                    "value": 2
+                  },
+                  {
+                    "color": "#e02f44",
+                    "value": 3
+                  },
+                  {
+                    "color": "#a64dd8",
+                    "value": 4
+                  },
+                  {
+                    "color": "#000000",
+                    "value": 5
+                  }
+                ]
+              },
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": {
+                      "text": "OK",
+                      "color": "#299c46",
+                      "index": 0
+                    },
+                    "1": {
+                      "text": "Sem Dados",
+                      "color": "#8e959f",
+                      "index": 1
+                    },
+                    "2": {
+                      "text": "Atenção",
+                      "color": "#f2cc0c",
+                      "index": 2
+                    },
+                    "3": {
+                      "text": "Grave",
+                      "color": "#e02f44",
+                      "index": 3
+                    },
+                    "4": {
+                      "text": "Crítico",
+                      "color": "#a64dd8",
+                      "index": 4
+                    },
+                    "5": {
+                      "text": "Pausado",
+                      "color": "#000000",
+                      "index": 5
+                    }
+                  }
+                },
+                {
+                  "type": "special",
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "Sem Dados",
+                      "color": "#8e959f"
+                    }
+                  }
+                }
+              ],
+              "noValue": "Sem Dados"
             },
-            "properties": [
-              {
-                "id": "unit",
-                "value": "bytes"
-              }
-            ]
-          }
-        ]
-      },
-      "options": {
-        "showHeader": true,
-        "cellHeight": "sm",
-        "sortBy": [
-          {
-            "displayName": "Uso",
-            "desc": true
-          }
-        ]
-      },
-      "transformations": [
-        {
-          "id": "organize",
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_status{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{UNIDADE}} · {{name}} · {{instance}}",
+              "instant": true,
+              "format": "time_series"
+            }
+          ],
           "options": {
-            "excludeByName": {
-              "Time": true,
-              "__name__": true,
-              "job": true,
-              "instance": true,
-              "tenant_id": true,
-              "integration_id": true
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value_and_name",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": true,
+              "fields": ""
             },
-            "renameByName": {
-              "Value": "Uso",
-              "Cliente": "Cliente",
-              "monitor_name": "Integração",
-              "site_name": "Site",
-              "site_id": "Identificação"
+            "wideLayout": true
+          }
+        },
+        {
+          "id": 116,
+          "type": "table",
+          "title": "Identificação e motivo do estado",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 6,
+            "y": 13,
+            "w": 18,
+            "h": 5
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": true,
+              "format": "table"
+            }
+          ],
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "__name__": true,
+                  "Value": true,
+                  "asset_id": true,
+                  "category": true
+                },
+                "indexByName": {
+                  "CLIENTE": 0,
+                  "UNIDADE": 1,
+                  "name": 2,
+                  "instance": 3,
+                  "reason": 4
+                },
+                "renameByName": {
+                  "CLIENTE": "Cliente",
+                  "UNIDADE": "Unidade",
+                  "name": "Ativo",
+                  "instance": "Destino / servidor",
+                  "reason": "Motivo"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": 117,
+          "type": "stat",
+          "title": "Armazenamento utilizado",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 18,
+            "w": 6,
+            "h": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_used_bytes{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": true,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": true,
+              "fields": ""
+            },
+            "wideLayout": true
+          }
+        },
+        {
+          "id": 118,
+          "type": "stat",
+          "title": "Capacidade configurada",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 6,
+            "y": 18,
+            "w": 6,
+            "h": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_capacity_bytes{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": true,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": true,
+              "fields": ""
+            },
+            "wideLayout": true
+          }
+        },
+        {
+          "id": 119,
+          "type": "stat",
+          "title": "Armazenamento disponível",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 18,
+            "w": 6,
+            "h": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_free_bytes{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": true,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": true,
+              "fields": ""
+            },
+            "wideLayout": true
+          }
+        },
+        {
+          "id": 120,
+          "type": "stat",
+          "title": "Ocupação",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 18,
+            "y": 18,
+            "w": 6,
+            "h": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_utilization_percent{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": true,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": true,
+              "fields": ""
+            },
+            "wideLayout": true
+          }
+        },
+        {
+          "id": 121,
+          "type": "stat",
+          "title": "Crescimento em 7 dias",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 22,
+            "w": 6,
+            "h": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_growth_7d_bytes{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": true,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": true,
+              "fields": ""
+            },
+            "wideLayout": true
+          }
+        },
+        {
+          "id": 122,
+          "type": "stat",
+          "title": "Crescimento em 30 dias",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 6,
+            "y": 22,
+            "w": 6,
+            "h": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_growth_30d_bytes{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": true,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": true,
+              "fields": ""
+            },
+            "wideLayout": true
+          }
+        },
+        {
+          "id": 123,
+          "type": "stat",
+          "title": "Sites",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 22,
+            "w": 6,
+            "h": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_site_count{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": true,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": true,
+              "fields": ""
+            },
+            "wideLayout": true
+          }
+        },
+        {
+          "id": 124,
+          "type": "stat",
+          "title": "Dias até expirar o segredo",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 18,
+            "y": 22,
+            "w": 6,
+            "h": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "d",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_secret_days_remaining{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": true,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": true,
+              "fields": ""
+            },
+            "wideLayout": true
+          }
+        },
+        {
+          "id": 125,
+          "type": "timeseries",
+          "title": "Armazenamento utilizado — histórico",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 26,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_used_bytes{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 126,
+          "type": "timeseries",
+          "title": "Capacidade configurada — histórico",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 26,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_capacity_bytes{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 127,
+          "type": "timeseries",
+          "title": "Armazenamento disponível — histórico",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 34,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_free_bytes{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 128,
+          "type": "timeseries",
+          "title": "Ocupação — histórico",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 34,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_utilization_percent{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 129,
+          "type": "timeseries",
+          "title": "Crescimento em 7 dias — histórico",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 42,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_growth_7d_bytes{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 130,
+          "type": "timeseries",
+          "title": "Crescimento em 30 dias — histórico",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 42,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_growth_30d_bytes{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 131,
+          "type": "timeseries",
+          "title": "Sites — histórico",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 50,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_site_count{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 132,
+          "type": "timeseries",
+          "title": "Dias até expirar o segredo — histórico",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 50,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "d",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_secret_days_remaining{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 133,
+          "type": "state-timeline",
+          "title": "Histórico de status",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 58,
+            "w": 24,
+            "h": 5
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  },
+                  {
+                    "color": "#8e959f",
+                    "value": 1
+                  },
+                  {
+                    "color": "#f2cc0c",
+                    "value": 2
+                  },
+                  {
+                    "color": "#e02f44",
+                    "value": 3
+                  },
+                  {
+                    "color": "#a64dd8",
+                    "value": 4
+                  },
+                  {
+                    "color": "#000000",
+                    "value": 5
+                  }
+                ]
+              },
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": {
+                      "text": "OK",
+                      "color": "#299c46",
+                      "index": 0
+                    },
+                    "1": {
+                      "text": "Sem Dados",
+                      "color": "#8e959f",
+                      "index": 1
+                    },
+                    "2": {
+                      "text": "Atenção",
+                      "color": "#f2cc0c",
+                      "index": 2
+                    },
+                    "3": {
+                      "text": "Grave",
+                      "color": "#e02f44",
+                      "index": 3
+                    },
+                    "4": {
+                      "text": "Crítico",
+                      "color": "#a64dd8",
+                      "index": 4
+                    },
+                    "5": {
+                      "text": "Pausado",
+                      "color": "#000000",
+                      "index": 5
+                    }
+                  }
+                },
+                {
+                  "type": "special",
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "Sem Dados",
+                      "color": "#8e959f"
+                    }
+                  }
+                }
+              ],
+              "noValue": "Sem Dados",
+              "custom": {
+                "lineWidth": 0,
+                "fillOpacity": 85,
+                "spanNulls": false
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_status{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "showValue": "auto",
+            "rowHeight": 0.8,
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          }
+        },
+        {
+          "id": 134,
+          "type": "timeseries",
+          "title": "Armazenamento por site",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 63,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "dnk_sharepoint_site_used_bytes{integration_id=~\"${asset_id:regex}\"} and on(integration_id) label_replace(dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end(), \"integration_id\", \"$1\", \"asset_id\", \"(.+)\")",
+              "refId": "A",
+              "legendFormat": "{{site_name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 135,
+          "type": "timeseries",
+          "title": "Limite de cada site",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 63,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "dnk_sharepoint_site_quota_bytes{integration_id=~\"${asset_id:regex}\"} and on(integration_id) label_replace(dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end(), \"integration_id\", \"$1\", \"asset_id\", \"(.+)\")",
+              "refId": "A",
+              "legendFormat": "{{site_name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 136,
+          "type": "timeseries",
+          "title": "Arquivos por site",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 71,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "dnk_sharepoint_site_files{integration_id=~\"${asset_id:regex}\"} and on(integration_id) label_replace(dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end(), \"integration_id\", \"$1\", \"asset_id\", \"(.+)\")",
+              "refId": "A",
+              "legendFormat": "{{site_name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 137,
+          "type": "timeseries",
+          "title": "Crescimento por site em 7 dias",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 71,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bytes",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "dnk_sharepoint_site_growth_7d_bytes{integration_id=~\"${asset_id:regex}\"} and on(integration_id) label_replace(dnk_asset_info{category=\"sharepoint\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end(), \"integration_id\", \"$1\", \"asset_id\", \"(.+)\")",
+              "refId": "A",
+              "legendFormat": "{{site_name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
             }
           }
         }
       ]
-    },
-    {
-      "id": 17,
-      "title": "Como interpretar",
-      "type": "text",
-      "gridPos": {
-        "x": 0,
-        "y": 40,
-        "w": 24,
-        "h": 5
-      },
-      "options": {
-        "mode": "markdown",
-        "content": "A capacidade total é informada manualmente e pode mudar com licenças ou compras adicionais. O consumo soma os sites ativos retornados pelo relatório; pode diferir do centro de administração. Limites por site não são somados.\n\nOs gráficos usam o horário de coleta. Confira também a data do relatório: a Microsoft pode publicar com atraso. Crescimentos e estimativas aparecem somente com histórico suficiente; estimativas usam o crescimento líquido dos últimos 7 dias e não garantem uma data de esgotamento. Integrações pausadas deixam de publicar novas métricas. Retenção: até 365 dias, limitada também a 2 GB no Prometheus dedicado."
-      }
     }
-  ]
+  ],
+  "description": "Todos os ativos do cliente, com resumo consolidado e uma seção expansível por ativo. CLIENTE seleciona uma empresa; UNIDADE e ativos permitem filtrar sem limitar por padrão a um único ativo. Métricas sem suporte ou desabilitadas aparecem Sem Dados. Ativos excluídos não aparecem.",
+  "annotations": {
+    "list": []
+  }
 }

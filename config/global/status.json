@@ -1,0 +1,14 @@
+{
+  "recovery_seconds": 600,
+  "warning_to_serious_seconds": 600,
+  "serious_to_critical_seconds": 1800,
+  "cpu_warning": 85,
+  "cpu_serious": 95,
+  "ram_warning": 85,
+  "ram_serious": 95,
+  "disk_warning": 80,
+  "disk_serious": 95,
+  "server_stale_seconds": 180,
+  "certificate_warning_days": 30,
+  "certificate_serious_days": 7
+}

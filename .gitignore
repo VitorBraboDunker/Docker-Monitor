@@ -1,8 +1,8 @@
+
 # Variáveis locais (versionar apenas exemplos)
 .env
 .env.*
 *.env
-
 # Senhas e credenciais operacionais
 config/secrets/*
 ACESSOS*.txt
@@ -22,11 +22,9 @@ ACESSOS*.txt
 .pypirc
 **/id_rsa*
 **/id_ed25519*
-
 # Configurações que contêm comunidade SNMP ou hash de autenticação
 config/snmp.yml
 config/caddy/Caddyfile
-
 # Certificados, chaves e bundles privados
 certs/
 *.crt
@@ -37,10 +35,8 @@ certs/
 *.p12
 *.jks
 *.keystore
-
 # Agentes gerados incluem senhas e podem incluir tokens
 agents/*/
-
 # Dados e backups podem conter credenciais
 backups/
 backup/
@@ -57,7 +53,6 @@ caddy-data/
 *.tar
 *.tar.gz
 *.zip
-
 # Logs, caches e ambiente local
 logs/
 *.log
@@ -71,7 +66,6 @@ Thumbs.db
 Desktop.ini
 tmp/
 temp/
-
 # Exemplos sem credenciais reais podem ser versionados
 !*.example
 !**/*.example
@@ -81,3 +75,10 @@ config/sharepoint/private/
 .dnk-install-state.json
 config/secrets/ingest_hash
 config/access/private/
+config/global/credentials.json
+config/global/credentials.json.lock
+config/global/domains.json
+config/generated/
+config/excluidos/*.json
+config/history/
+config/certificates/

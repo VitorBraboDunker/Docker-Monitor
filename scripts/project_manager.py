@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Offline inspection and reversible consolidation of Dunker Monitor."""
 from __future__ import annotations
-import argparse,datetime as dt,hashlib,json,os,secrets,shutil,sqlite3,sys,uuid
+import argparse,datetime as dt,hashlib,json,os,secrets,shutil,sqlite3,sys,uuid,tempfile
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent/'vendor'))
 import yaml
+sys.path.insert(0,str(Path(__file__).resolve().parent))
+import global_settings
 
 class Problem(ValueError):pass
 class Dumper(yaml.SafeDumper):
@@ -57,12 +59,13 @@ def inspect(root,package,output,stage='antes'):
   if sharepoint_db.is_file():
    with sqlite3.connect('file:'+str(sharepoint_db)+'?mode=ro',uri=True) as db:counts['integracoes_sharepoint']=db.execute('SELECT COUNT(*) FROM tenants').fetchone()[0]
  except sqlite3.Error:counts['integracoes_sharepoint']='não foi possível consultar'
- secrets_status={name:(root/'config/secrets'/name).is_file() for name in ('grafana_admin_password','grafana_secret_key','ingest_password','snmp_community')}
+ secret_cfg=json.loads((root/'config/global/credentials.json').read_text()).get('system',{}) if (root/'config/global/credentials.json').exists() else {}
+ secrets_status={name:bool(secret_cfg.get(name)) for name in ('grafana_admin_password','grafana_secret_key','ingest_password','snmp_community')}
  try:compose=current_compose(root);services=list((compose or {}).get('services',{}));project=(compose or {}).get('name')
  except Problem:services=[];project=None
- report={'pacote':'1.4.3','etapa':stage,'horario_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'pasta':str(root),'nome_compose':project,'servicos_definidos':services,'arquivos':files,'inventario':counts,'arquivos_de_credenciais_presentes':secrets_status,'rota_monitoramento':(root/'config/caddy/Caddyfile').is_file() and '/monitoramento/*' in (root/'config/caddy/Caddyfile').read_text(),'observacao':'Inspeção de arquivos. O relatório Docker separado contém containers e caminhos reais. Não inclui senhas nem conteúdo do inventário.'}
+ report={'pacote':'1.0.0','etapa':stage,'horario_utc':dt.datetime.now(dt.timezone.utc).isoformat(),'pasta':str(root),'nome_compose':project,'servicos_definidos':services,'arquivos':files,'inventario':counts,'arquivos_de_credenciais_presentes':secrets_status,'rota_monitoramento':(root/'config/caddy/Caddyfile').is_file() and '/monitoramento/*' in (root/'config/caddy/Caddyfile').read_text(),'observacao':'Inspeção de arquivos. O relatório Docker separado contém containers e caminhos reais. Não inclui senhas nem conteúdo do inventário.'}
  output.mkdir(parents=True,exist_ok=True);(output/f'arquivos-{stage}.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
- lines=['DUNKER MONITOR — REVISÃO '+stage.upper(),'Pacote: 1.4.3','Pasta: '+str(root),'Serviços definidos: '+', '.join(services),'Arquivos ausentes: '+str(sum(f['estado']=='ausente' for f in files)),'Arquivos diferentes: '+str(sum(f['estado']=='existente / diferente' for f in files)),'','Inventário (somente contagens): '+json.dumps(counts,ensure_ascii=False),'Credenciais: somente presença dos arquivos, sem valores.','','Detalhes de arquivos:']
+ lines=['DUNKER MONITOR — REVISÃO '+stage.upper(),'Pacote: 1.0.0','Pasta: '+str(root),'Serviços definidos: '+', '.join(services),'Arquivos ausentes: '+str(sum(f['estado']=='ausente' for f in files)),'Arquivos diferentes: '+str(sum(f['estado']=='existente / diferente' for f in files)),'','Inventário (somente contagens): '+json.dumps(counts,ensure_ascii=False),'Credenciais: somente presença dos arquivos, sem valores.','','Detalhes de arquivos:']
  lines += [f"{f['estado']} | {f['acao_prevista']} | {f['arquivo']}" for f in files]
  (output/f'arquivos-{stage}.txt').write_text('\n'.join(lines)+'\n')
  print('Revisão '+stage+': '+str(sum(f['estado']=='ausente' for f in files))+' arquivos ausentes. Relatório em '+str(output))
@@ -107,6 +110,18 @@ def compose_update(root,package,compose_name=None):
    command=original['command']
    if not isinstance(command,list):raise Problem('Prometheus usa command textual; adapte para uma lista antes da atualização.')
    target['command']=command
+ value['services'].pop('sharepoint-prometheus',None)
+ value['services'].pop('blackbox',None)
+ # Canonical mounts and config interfaces, preserving volume identities.
+ for name in ('grafana','admin','sharepoint'):
+  target=value['services'][name];reference=canonical['services'][name]
+  target['depends_on']=reference.get('depends_on',[])
+  if name=='admin':target.get('environment',{}).pop('BLACKBOX_URL',None);target.get('environment',{}).pop('ADMIN_PASSWORD_FILE',None)
+  for key in ('environment','volumes'):
+   if key=='environment':target[key]={**target.get(key,{}),**reference.get(key,{})}
+   else:
+    targets={volume_target(v) for v in reference.get(key,[])}
+    target[key]=[v for v in target.get(key,[]) if volume_target(v) not in targets]+reference.get(key,[])
  # Keep custom root fields and volume declarations/options from the original.
  for key in ('networks','secrets','configs'):
   if key in current:value[key]=current[key]
@@ -132,7 +147,7 @@ def prometheus_update(root,package):
  if 'global' in old:value['global']=old['global']
  if 'alerting' in old:value['alerting']=old['alerting']
  jobs={job['job_name']:job for job in canonical['scrape_configs']}
- value['scrape_configs']=[jobs.pop(job['job_name'],job) for job in old.get('scrape_configs',[])]+list(jobs.values())
+ value['scrape_configs']=[jobs.pop(job['job_name'],job) for job in old.get('scrape_configs',[]) if not job['job_name'].startswith(('blackbox_','exporter_blackbox'))]+list(jobs.values())
  managed={'/etc/dunker/prometheus/rules.yml','/etc/dunker/prometheus/integracoes.yml','/etc/dunker/prometheus/regras-links.yml'}
  extra=[v for v in old.get('rule_files',[]) if v not in managed]
  if any('*' in v or '?' in v or '[' in v for v in extra):raise Problem('rule_files usa um padrão de arquivos; revise o padrão para evitar grupos duplicados antes de atualizar.')
@@ -154,7 +169,9 @@ def write(path,body,private=False):
  while not parent.exists():missing.append(parent);parent=parent.parent
  path.parent.mkdir(parents=True,exist_ok=True)
  for folder in missing:os.chmod(folder,0o700 if '/private' in folder.as_posix() or '/backups/' in folder.as_posix() else 0o755)
- existed=path.exists();path.write_bytes(body)
+ existed=path.exists();fd,temporary=tempfile.mkstemp(dir=path.parent)
+ with os.fdopen(fd,"wb") as stream:stream.write(body)
+ os.chmod(temporary,0o600 if private else 0o644);os.replace(temporary,path)
  if private:os.chmod(path,0o600)
  elif not existed:os.chmod(path,0o644)
  # Grafana's unprivileged container must read its two bootstrap files.
@@ -174,7 +191,7 @@ def apply(root,package,new=False,compose_name=None):
  changes['compose.separado.yaml']=dump(compose_update(root,package,compose_name))
  changes['config/prometheus/separado.yml']=dump(prometheus_update(root,package))
  rules=root/'config/prometheus/rules.yml';canonical=read_yaml(package/'config/prometheus/rules.yml')
- changes['config/prometheus/rules.yml']=dump(merge_groups(read_yaml(rules),canonical) if rules.exists() else canonical)
+ changes['config/prometheus/rules.yml']=dump({'groups':[g for g in read_yaml(rules).get('groups',[]) if not g['name'].startswith('dunker-')]+canonical['groups']} if rules.exists() else canonical)
  # Do not let the admin bootstrap erase legacy probes when inventory is missing.
  inventory=root/'config/targets/inventory.json'
  if inventory.exists():
@@ -200,19 +217,6 @@ def apply(root,package,new=False,compose_name=None):
   changes['config/secrets/ingest_hash.pending']=b'Generate Caddy ingress hash before startup.\n';private_paths.add('config/secrets/ingest_hash.pending')
  if not (root/'.env').exists():
   changes['.env']=(package/'.env.example').read_bytes();private_paths.add('.env')
- # Stable secrets are generated only when absent; never rotate a running Grafana key.
- for name in ('grafana_admin_password','grafana_secret_key','ingest_password','snmp_community'):
-  relative='config/secrets/'+name
-  if not (root/relative).exists():changes[relative]=(secrets.token_urlsafe(36)+'\n').encode();private_paths.add(relative)
- if not (root/'config/secrets/credentials.json').exists():
-  creds={}
-  for name in ('grafana_admin_password','grafana_secret_key','ingest_password','snmp_community'):
-   p=root/'config/secrets'/name;creds[name]=p.read_text().strip() if p.exists() else changes['config/secrets/'+name].decode().strip()
-  changes['config/secrets/credentials.json']=(json.dumps(creds,indent=2)+'\n').encode();private_paths.add('config/secrets/credentials.json')
- if not (root/'config/snmp.yml').exists():
-  secret=root/'config/secrets/snmp_community';community=secret.read_text().strip() if secret.exists() else changes['config/secrets/snmp_community'].decode().strip()
-  config=read_yaml(package/'config/snmp.yml.example');config['auths']['dunker_v2']['community']=community
-  changes['config/snmp.yml']=dump(config);private_paths.add('config/snmp.yml')
  for folder in ('config/integracoes/private','config/sharepoint/private','config/access/private'):
   path=root/folder
   if not path.exists():
@@ -221,27 +225,41 @@ def apply(root,package,new=False,compose_name=None):
     if parent.exists():os.chmod(parent,0o755)
  snmp='config/integracoes/private/snmp-managed.yml'
  if not (root/snmp).exists():changes[snmp]=(package/'config/integracoes/snmp-managed.example').read_bytes();private_paths.add(snmp)
- token='config/sharepoint/private/gateway_token'
- if not (root/token).exists():changes[token]=(secrets.token_urlsafe(48)+'\n').encode();private_paths.add(token)
  ignore=(root/'.gitignore').read_text() if (root/'.gitignore').exists() else ''
  for line in (package/'.gitignore').read_text().splitlines():
   if line and line not in ignore.splitlines():ignore=ignore.rstrip()+'\n'+line+'\n'
  changes['.gitignore']=ignore.encode()
+ for relative in list(changes):
+  if relative.startswith('config/secrets/') or relative=='config/sharepoint/private/gateway_token':changes.pop(relative)
  changes['package-manifest.json']=(package/'package-manifest.json').read_bytes()
+ global_changes,removals=global_settings.plan(root,package,changes)
+ changes.update(global_changes)
+ for relative in ('config/snmp.yml','config/integracoes/private/snmp-managed.yml','config/targets/snmp.json'):
+  if relative not in changes and (root/relative).exists():changes[relative]=(root/relative).read_bytes()
+ if not (root/'config/snmp.yml').exists():
+  config=read_yaml(package/'config/snmp.yml.example');config['auths']['dunker_v2']['community']=json.loads(global_changes['config/global/credentials.json'])['system']['snmp_community'];changes['config/snmp.yml']=dump(config)
+ private_paths.update(k for k in global_changes if k.startswith(('config/global/credentials','config/generated/','config/caddy/')))
+ removals += manifest.get('obsolete_files',[])
+ removals=[r for r in dict.fromkeys(removals) if r not in changes and (root/r).is_file()]
  # Unknown targets, credentials and files stay outside this managed mutation set.
  backup='backups/completo-'+dt.datetime.now().strftime('%Y%m%d-%H%M%S')+'-'+uuid.uuid4().hex[:6]
- record={'versao':'1.4.3','backup':backup,'files':[]}
+ record={'versao':'1.0.0','backup':backup,'files':[]}
  try:
   for relative,body in changes.items():
    target=root/relative;saved=root/backup/relative;existed=target.is_file()
    if existed:saved.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(target,saved)
    record['files'].append({'target':relative,'backup':saved.relative_to(root).as_posix(),'existed':existed})
    write(target,body,relative in private_paths)
+  for relative in removals:
+   target=root/relative;saved=root/backup/relative
+   saved.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(target,saved)
+   record['files'].append({'target':relative,'backup':saved.relative_to(root).as_posix(),'existed':True});target.unlink()
+  global_settings.sync(root)
   path=root/backup/'manifest.json';write(path,(json.dumps(record,indent=2)+'\n').encode(),True)
   write(root/'.dnk-install-state.json',(json.dumps({'backup_manifest':str(path.relative_to(root))})+'\n').encode(),True)
  except Exception:
   restore(root,record);raise
- print('Projeto completo 1.4.3 preparado. Backup: '+backup)
+ print('Projeto completo 1.0.0 preparado. Backup: '+backup)
 
 def restore(root,record):
  for item in reversed(record['files']):
@@ -258,13 +276,15 @@ def rollback(root):
  print('Arquivos restaurados. Segredos e dados privados foram preservados. Não foram removidos volumes Docker.')
 
 def finalize_hash(root):
- p=root/'config/secrets/ingest_hash';bcrypt=p.read_text().strip()
+ p=root/'config/generated/ingest_hash';bcrypt=p.read_text().strip()
  if not bcrypt.startswith(('$2a$','$2b$','$2y$')) or len(bcrypt)!=60:raise Problem('Hash de ingestão inválido')
- caddy=root/'config/caddy/Caddyfile';text=caddy.read_text().replace('{$INGEST_HASH}',bcrypt)
- write(caddy,text.encode(),True)
- pending=root/'config/secrets/ingest_hash.pending'
- if pending.exists():pending.unlink()
- print('Autenticação da ingestão preparada; valores privados não foram exibidos.')
+ cfg_path=root/'config/global/credentials.json';cfg=json.loads(cfg_path.read_text());cfg['system']['ingest_hash']=bcrypt
+ write(cfg_path,(json.dumps(cfg,ensure_ascii=False,indent=2)+'\n').encode(),True)
+ global_settings.sync(root)
+ for file in ('ingest_hash','ingest_hash.pending'):
+  p=root/'config/generated'/file
+  if p.exists():p.unlink()
+ print('Autenticação de ingestão preparada a partir do arquivo global.')
 
 if __name__=='__main__':
  parser=argparse.ArgumentParser();parser.add_argument('action',choices=['inspect','apply','rollback','finalize-hash']);parser.add_argument('--project',required=True);parser.add_argument('--package',default=str(Path(__file__).resolve().parents[1]));parser.add_argument('--output');parser.add_argument('--stage',default='antes');parser.add_argument('--new',action='store_true');parser.add_argument('--compose-name');a=parser.parse_args()

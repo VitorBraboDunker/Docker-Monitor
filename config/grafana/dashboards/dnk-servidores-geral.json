@@ -1,0 +1,602 @@
+{
+  "uid": "dnk-servidores-geral",
+  "title": "Dunker | Servidores — Visão Geral por Cliente",
+  "schemaVersion": 39,
+  "version": 2,
+  "editable": false,
+  "tags": [
+    "Dunker",
+    "v1.0",
+    "CLIENTE",
+    "UNIDADE"
+  ],
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "links": [
+    {
+      "title": "Desempenho geral",
+      "url": "/d/dnk-conformidade",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Links",
+      "url": "/d/dnk-links-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Firewalls",
+      "url": "/d/dnk-firewalls-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Servidores",
+      "url": "/d/dnk-servidores-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "SharePoint",
+      "url": "/d/dnk-sharepoint-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Domínios",
+      "url": "/d/dnk-dominios",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Configurações",
+      "type": "link",
+      "url": "/a/dunker-integracoes-app/links"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "CLIENTE",
+        "label": "Cliente",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": {
+          "query": "label_values(dnk_client_category_status{category=\"servidores\"}, CLIENTE)",
+          "refId": "CLIENTE"
+        },
+        "definition": "label_values(dnk_client_category_status{category=\"servidores\"}, CLIENTE)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "options": [],
+        "current": {
+          "text": "Todos",
+          "value": "$__all"
+        },
+        "allValue": ".*"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 67,
+      "type": "text",
+      "title": "Servidores por cliente",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 3
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Clique no cartão de um cliente para abrir **todos os seus servidores**, com seções expansíveis e gráficos individuais.\n\n**Verde:** OK · **Cinza:** Sem Dados · **Amarelo:** Atenção · **Vermelho:** Grave · **Roxo:** Crítico · **Preto:** Pausado."
+      }
+    },
+    {
+      "id": 68,
+      "type": "stat",
+      "title": "Clientes · OK",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#299c46"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "count(dnk_client_category_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"} == 0) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 69,
+      "type": "stat",
+      "title": "Clientes · Sem Dados",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "gridPos": {
+        "x": 4,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8e959f"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "count(dnk_client_category_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"} == 1) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 70,
+      "type": "stat",
+      "title": "Clientes · Atenção",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#f2cc0c"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "count(dnk_client_category_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"} == 2) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 71,
+      "type": "stat",
+      "title": "Clientes · Grave",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#e02f44"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "count(dnk_client_category_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"} == 3) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 72,
+      "type": "stat",
+      "title": "Clientes · Crítico",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#a64dd8"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "count(dnk_client_category_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"} == 4) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 73,
+      "type": "stat",
+      "title": "Clientes · Pausado",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#000000"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "count(dnk_client_category_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"} == 5) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 74,
+      "type": "stat",
+      "title": "Clientes — clique para abrir todos os ativos",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 24,
+        "h": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              },
+              {
+                "color": "#8e959f",
+                "value": 1
+              },
+              {
+                "color": "#f2cc0c",
+                "value": 2
+              },
+              {
+                "color": "#e02f44",
+                "value": 3
+              },
+              {
+                "color": "#a64dd8",
+                "value": 4
+              },
+              {
+                "color": "#000000",
+                "value": 5
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "OK",
+                  "color": "#299c46",
+                  "index": 0
+                },
+                "1": {
+                  "text": "Sem Dados",
+                  "color": "#8e959f",
+                  "index": 1
+                },
+                "2": {
+                  "text": "Atenção",
+                  "color": "#f2cc0c",
+                  "index": 2
+                },
+                "3": {
+                  "text": "Grave",
+                  "color": "#e02f44",
+                  "index": 3
+                },
+                "4": {
+                  "text": "Crítico",
+                  "color": "#a64dd8",
+                  "index": 4
+                },
+                "5": {
+                  "text": "Pausado",
+                  "color": "#000000",
+                  "index": 5
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "Sem Dados",
+                  "color": "#8e959f"
+                }
+              }
+            }
+          ],
+          "noValue": "Sem Dados",
+          "links": [
+            {
+              "title": "Abrir detalhes do cliente",
+              "url": "/d/dnk-servidores-detalhes?var-CLIENTE=${__field.labels.CLIENTE:percentencode}&var-UNIDADE=All&var-asset_id=All&from=${__from}&to=${__to}",
+              "targetBlank": false
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "dnk_client_category_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"}",
+          "refId": "A",
+          "legendFormat": "{{CLIENTE}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
+      }
+    }
+  ],
+  "description": "Um cartão por cliente, consolidando todos os ativos habilitados da categoria em todas as unidades. Qualquer anomalia altera o estado do cliente. Clique para abrir o dashboard técnico completo.",
+  "annotations": {
+    "list": []
+  }
+}

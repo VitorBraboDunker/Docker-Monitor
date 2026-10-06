@@ -1,16 +1,1 @@
-[
-  {
-    "tipo": "icmp",
-    "Cliente": "DunkerLAB",
-    "Unidade": "VM",
-    "Provedor": "Autoteste",
-    "instance": "127.0.0.1"
-  },
-  {
-    "tipo": "icmp",
-    "Cliente": "DunkerIT",
-    "Unidade": "Matriz",
-    "Provedor": "Cloudflare",
-    "instance": "1.1.1.1"
-  }
-]
+[]

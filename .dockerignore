@@ -5,3 +5,10 @@ certs
 backups
 *.tar*
 ACESSOS*
+
+config/global/credentials.json
+config/global/domains.json
+config/generated
+config/history
+config/excluidos/*.json
+config/certificates

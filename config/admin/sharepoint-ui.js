@@ -1,7 +1,7 @@
 /* Shared UI: native Grafana app + existing Dunker administration page. */
 function mountSharePoint(root, request, options={}) {
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const defaults={name:'',Cliente:'',tenant_id:'',client_id:'',capacity_gib:0,capacity_unit:'GB',interval_hours:24,warning_percent:80,critical_percent:90,emergency_percent:95,stale_hours:96,enabled:true,secret_expires:'',selected_sites:[],site_aliases:{}};
+  const defaults={name:'',CLIENTE:'',UNIDADE:'Geral',tenant_id:'',client_id:'',capacity_gib:0,capacity_unit:'GB',interval_hours:24,warning_percent:80,critical_percent:90,emergency_percent:95,stale_hours:96,enabled:true,secret_expires:'',selected_sites:[],site_aliases:{}};
   let tenants=[], current=null, sites=[], dead=false, busy=false;
   const date=t=>t?new Date(t*1000).toLocaleString('pt-BR'):'Ainda não coletado';
   const storage=b=>{const gb=Number(b)/1073741824;return (gb>=1024?gb/1024:gb).toLocaleString('pt-BR',{maximumFractionDigits:2})+(gb>=1024?' TB':' GB')};
@@ -25,14 +25,15 @@ function mountSharePoint(root, request, options={}) {
   <p>A integração lê relatórios de uso; não altera arquivos nem limites do SharePoint. O relatório pode refletir dados de 24–48 horas atrás. O servidor precisa de saída HTTPS para login.microsoftonline.com, graph.microsoft.com, reports.office.com e reportsncu.office.com.</p>
   <p><a href="https://learn.microsoft.com/pt-br/graph/api/reportroot-getsharepointsiteusagedetail?view=graph-rest-1.0" target="_blank" rel="noopener noreferrer">Referência oficial: relatório e permissões</a> · <a href="https://learn.microsoft.com/pt-br/sharepoint/manage-site-collection-storage-limits" target="_blank" rel="noopener noreferrer">Capacidade de armazenamento</a></p></details>
   <form data-el="form"><div class="sp-grid">
-  <label>Cliente<input name="Cliente" required maxlength="120" placeholder="Ex.: Onkos"></label>
+  <label>CLIENTE<input name="CLIENTE" required maxlength="120" placeholder="Ex.: Onkos"></label>
+  <label>UNIDADE<input name="UNIDADE" required maxlength="120" placeholder="Geral ou unidade do cliente"></label>
   <label>Nome da integração<input name="name" required maxlength="120" placeholder="Ex.: Microsoft 365 — matriz"></label>
   <label>Estado<select name="enabled"><option value="true">Ativo</option><option value="false">Pausado</option></select></label>
   <label>Tenant ID<input name="tenant_id" required placeholder="ID do diretório no Entra"></label>
   <label>Application / Client ID<input name="client_id" required placeholder="ID do aplicativo no Entra"></label>
   <label>Valor do segredo<input name="client_secret" type="password" autocomplete="new-password" placeholder="Ao editar, vazio mantém o segredo"></label>
   <label>Expiração do segredo (opcional)<input name="secret_expires" type="date"></label>
-  <label>Capacidade total do cliente<div class="sp-capacity"><input name="capacity_value" aria-label="Valor da capacidade total" type="number" min="0" max="100000000" step="any" required><select name="capacity_unit" aria-label="Unidade da capacidade"><option value="GB">GB</option><option value="TB">TB</option></select></div><small data-el="capacityHint">1 TB = 1.024 GB (unidades do SharePoint). 0 = não informado.</small></label>
+  <label>Capacidade total do cliente<div class="sp-capacity"><input name="capacity_value" aria-label="Valor da capacidade total" type="number" min="0" max="100000000" step="any" required><select name="capacity_unit" aria-label="UNIDADE da capacidade"><option value="GB">GB</option><option value="TB">TB</option></select></div><small data-el="capacityHint">1 TB = 1.024 GB (unidades do SharePoint). 0 = não informado.</small></label>
   <label>Consultar a cada (horas)<input name="interval_hours" type="number" min="6" max="168" step="any"></label>
   <label>Atenção (%)<input name="warning_percent" type="number" min="1" max="100" step="any"></label>
   <label>Crítico (%)<input name="critical_percent" type="number" min="1" max="100" step="any"></label>
@@ -48,8 +49,8 @@ function mountSharePoint(root, request, options={}) {
   const status=t=>!t.enabled?'Pausado':t.collecting?'Coletando':t.error?'Falha na coleta':!t.report_date?'Aguardando coleta':(Date.now()-Date.parse(t.report_date+'T00:00:00Z'))>t.stale_hours*3600000?'Relatório antigo':t.capacity_gib===0?'Capacidade não informada':'Coleta disponível';
   function render(){
     if(dead)return;const q=$('search').value.toLowerCase();$('count').textContent=tenants.length+' integrações';
-    const filtered=tenants.filter(t=>(t.Cliente+' '+t.name).toLowerCase().includes(q));
-    $('cards').innerHTML=filtered.length?filtered.map(t=>`<article class="sp-card"><div class="sp-kicker">${esc(t.Cliente)}</div><h2>${esc(t.name)}</h2><span class="sp-badge ${t.error?'sp-bad':''}">${esc(status(t))}</span><dl><dt>Relatório da Microsoft</dt><dd>${esc(t.report_date||'—')}</dd><dt>Última coleta bem-sucedida</dt><dd>${esc(date(t.last_success))}</dd><dt>Capacidade cadastrada</dt><dd>${t.capacity_gib?esc(capacity(t)):'Não informada'}</dd></dl>${t.error?'<p class="sp-error">'+esc(t.error)+'</p>':''}${t.report_warning?'<p class="sp-notice">'+esc(t.report_warning)+'</p>':''}<div class="sp-actions"><button data-id="${esc(t.id)}" data-action="edit">Configurar</button><button data-id="${esc(t.id)}" data-action="collect" ${t.collecting?'disabled':''}>Coletar agora</button><button data-id="${esc(t.id)}" data-action="pause">${t.enabled?'Pausar':'Ativar'}</button><button data-id="${esc(t.id)}" data-action="export">Exportar histórico</button><button data-id="${esc(t.id)}" data-action="delete" class="sp-danger">Excluir</button></div></article>`).join(''):'<div class="sp-empty"><h2>Nenhuma integração encontrada</h2><p>Cadastre um cliente para acompanhar o armazenamento do SharePoint.</p></div>';
+    const filtered=tenants.filter(t=>(t.CLIENTE+' '+t.name).toLowerCase().includes(q));
+    $('cards').innerHTML=filtered.length?filtered.map(t=>`<article class="sp-card"><div class="sp-kicker">${esc(t.CLIENTE)}</div><h2>${esc(t.name)}</h2><span class="sp-badge ${t.error?'sp-bad':''}">${esc(status(t))}</span><dl><dt>Relatório da Microsoft</dt><dd>${esc(t.report_date||'—')}</dd><dt>Última coleta bem-sucedida</dt><dd>${esc(date(t.last_success))}</dd><dt>Capacidade cadastrada</dt><dd>${t.capacity_gib?esc(capacity(t)):'Não informada'}</dd></dl>${t.error?'<p class="sp-error">'+esc(t.error)+'</p>':''}${t.report_warning?'<p class="sp-notice">'+esc(t.report_warning)+'</p>':''}<div class="sp-actions"><button data-id="${esc(t.id)}" data-action="edit">Configurar</button><button data-id="${esc(t.id)}" data-action="collect" ${t.collecting?'disabled':''}>Coletar agora</button><button data-id="${esc(t.id)}" data-action="pause">${t.enabled?'Pausar':'Ativar'}</button><button data-id="${esc(t.id)}" data-action="export">Exportar histórico</button><button data-id="${esc(t.id)}" data-action="delete" class="sp-danger">Excluir</button></div></article>`).join(''):'<div class="sp-empty"><h2>Nenhuma integração encontrada</h2><p>Cadastre um cliente para acompanhar o armazenamento do SharePoint.</p></div>';
     if(options.canEdit===false){root.querySelectorAll('[data-action=collect],[data-action=pause],[data-action=delete]').forEach(b=>b.hidden=true);root.querySelectorAll('[data-action=edit]').forEach(b=>b.textContent='Consultar configuração')}
   }
   async function load(){try{const list=await request('/tenants');if(dead)return;tenants=list;render()}catch(e){if(!dead)msg(e.message,true)}}
@@ -60,7 +61,7 @@ function mountSharePoint(root, request, options={}) {
     if(!canEdit)root.querySelectorAll('.sp-sites input').forEach(x=>x.disabled=true);
   }
   function selectionChanged(){root.querySelectorAll('.sp-sites input[type=checkbox]').forEach(x=>{x.disabled=options.canEdit===false||$('selection').value==='all'})}
-  async function open(t){current=t||null;const v={...defaults,...t};form.reset();$('result').textContent='';$('title').textContent=t?'Configurar '+t.Cliente:'Integrar cliente';
+  async function open(t){current=t||null;const v={...defaults,...t};form.reset();$('result').textContent='';$('title').textContent=t?'Configurar '+t.CLIENTE:'Integrar cliente';
     for(const k in defaults){const field=form.elements.namedItem(k);if(field)field.value=String(v[k])}
     form.elements.capacity_unit.value=v.capacity_unit||'GB';
     form.elements.capacity_value.value=String(Number(v.capacity_gib)/(form.elements.capacity_unit.value==='TB'?1024:1));
@@ -93,9 +94,9 @@ function mountSharePoint(root, request, options={}) {
   form.onsubmit=async e=>{e.preventDefault();if(!canEdit||busy)return;setBusy(true);try{await request(current?'/tenants/'+current.id:'/tenants',{method:current?'PUT':'POST',body:JSON.stringify(payload())});if(dead)return;form.elements.client_secret.value='';$('editor').hidden=true;msg('Integração salva. O coletor executa conforme o intervalo; use Coletar agora para iniciar.');await load()}catch(e){if(!dead)$('result').textContent=e.message}finally{setBusy(false)}};
   $('test').onclick=async()=>{if(!canEdit||busy||!form.reportValidity())return;setBusy(true);$('result').textContent='Testando conexão…';try{const p=payload(),r=await job(request('/test',{method:'POST',body:JSON.stringify(p)}));if(!r||dead)return;showSites(r.sites,{...current,selected_sites:p.selected_sites,site_aliases:p.site_aliases});$('result').textContent=`Conexão confirmada · ${r.site_count} sites · ${storage(r.used_bytes)} · relatório de ${r.report_date}. ${r.warning||''}`;form.elements.client_secret.value=p.client_secret||''}catch(e){if(!dead)$('result').textContent=e.message}finally{setBusy(false)}};
   $('cards').onclick=async e=>{const b=e.target.closest('button[data-id]');if(!b||b.disabled)return;const t=tenants.find(x=>x.id===b.dataset.id);if(b.dataset.action==='edit')return open(t);if(!canEdit&&b.dataset.action!=='export')return;b.disabled=true;
-    try{switch(b.dataset.action){case 'collect':msg('Coletando '+t.Cliente+'…');{const collected=await job(request('/tenants/'+t.id+'/collect',{method:'POST',body:'{}'}));msg('Coleta concluída. Os painéis recebem as métricas em até 5 minutos. '+(collected?.warning||''));}break;
+    try{switch(b.dataset.action){case 'collect':msg('Coletando '+t.CLIENTE+'…');{const collected=await job(request('/tenants/'+t.id+'/collect',{method:'POST',body:'{}'}));msg('Coleta concluída. Os painéis recebem as métricas em até 5 minutos. '+(collected?.warning||''));}break;
       case 'pause':await request('/tenants/'+t.id,{method:'PUT',body:JSON.stringify({enabled:!t.enabled})});msg(t.enabled?'Coleta pausada.':'Coleta ativada.');break;
-      case 'delete':if(!confirm('Excluir a integração? O histórico fica preservado até expirar; a credencial será removida.'))return;await request('/tenants/'+t.id,{method:'DELETE'});msg('Integração excluída.');break;
+      case 'delete':if(!confirm('Excluir a integração? O cadastro, a credencial e o histórico serão preservados em Itens Excluídos para reativação.'))return;await request('/tenants/'+t.id,{method:'DELETE'});msg('Integração excluída.');break;
       case 'export':{const data=await request('/tenants/'+t.id+'/export',{},true),url=URL.createObjectURL(new Blob([data],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='sharepoint-historico-'+t.id+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),3000);break}}
       await load();}catch(e){msg(e.message,true)}finally{b.disabled=false}
   };

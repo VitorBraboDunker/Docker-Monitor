@@ -20,6 +20,7 @@ from unittest.mock import patch
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'runtime'))
+import global_config,release_state
 import admin_monitor as a
 import snmp_manager as s
 import ping_exporter as p
@@ -30,6 +31,8 @@ PAYLOAD={'name':'Firewall Matriz','Cliente':'Dunker','Unidade':'SP','host':'127.
 class Integrations(unittest.TestCase):
  def setUp(self):
   self.tmp=tempfile.TemporaryDirectory();self.dir=Path(self.tmp.name)
+  self.addCleanup(patch.stopall)
+  patch.object(global_config,'FILE',self.dir/'credentials.json').start();patch.object(release_state,'DB',self.dir/'history.sqlite3').start()
   self.previous=(a.DATA_DIR,a.INVENTORY,a.PASSWORD_FILE,s.PRIVATE,s.MODULES,p.INVENTORY)
   a.DATA_DIR=self.dir/'targets';a.INVENTORY=a.DATA_DIR/'inventory.json';a.PASSWORD_FILE=self.dir/'password'
   a.PASSWORD_FILE.write_text('test-only');s.PRIVATE=self.dir/'private';s.MODULES=ROOT/'config/integracoes/modules.json'
@@ -66,7 +69,7 @@ class Integrations(unittest.TestCase):
   self.req('/api/devices/'+identifier,'PUT',{'enabled':False})
   self.assertEqual(json.loads((a.DATA_DIR/'snmp.json').read_text()),legacy)
   self.req('/api/devices/'+identifier,'DELETE')
-  self.assertEqual(self.req('/api/devices'),[]);self.assertEqual(a.snmp_auths(),{})
+  self.assertEqual(self.req('/api/devices'),[]);self.assertIn(identifier,a.snmp_auths());self.assertTrue(a.load_inventory()[-1]['deleted_at']);self.req('/api/restore/firewalls/'+identifier,'POST',{});self.assertEqual(self.req('/api/devices')[0]['id'],identifier)
   self.assertEqual(len(self.req('/api/monitors')),1)
  def test_rejected_reload_rolls_back(self):
   before=a.INVENTORY.read_bytes()

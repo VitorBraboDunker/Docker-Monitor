@@ -1,0 +1,1778 @@
+{
+  "uid": "dnk-servidores-detalhes",
+  "title": "Dunker | Cliente — Servidores Detalhados",
+  "schemaVersion": 39,
+  "version": 2,
+  "editable": false,
+  "tags": [
+    "Dunker",
+    "v1.0",
+    "CLIENTE",
+    "UNIDADE"
+  ],
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "links": [
+    {
+      "title": "← Todos os clientes · Servidores",
+      "url": "/d/dnk-servidores-geral",
+      "type": "link",
+      "keepTime": true
+    },
+    {
+      "title": "Desempenho geral",
+      "url": "/d/dnk-conformidade",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Links",
+      "url": "/d/dnk-links-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Firewalls",
+      "url": "/d/dnk-firewalls-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Servidores",
+      "url": "/d/dnk-servidores-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "SharePoint",
+      "url": "/d/dnk-sharepoint-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Domínios",
+      "url": "/d/dnk-dominios",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Configurações",
+      "type": "link",
+      "url": "/a/dunker-integracoes-app/links"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "CLIENTE",
+        "label": "Cliente",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": {
+          "query": "label_values(dnk_asset_info{category=\"servidores\"}, CLIENTE)",
+          "refId": "CLIENTE"
+        },
+        "definition": "label_values(dnk_asset_info{category=\"servidores\"}, CLIENTE)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": false,
+        "includeAll": false,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "UNIDADE",
+        "label": "Unidade",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": {
+          "query": "label_values(dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"}, UNIDADE)",
+          "refId": "UNIDADE"
+        },
+        "definition": "label_values(dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"}, UNIDADE)",
+        "refresh": 2,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "options": [],
+        "current": {
+          "text": "Todos",
+          "value": "$__all"
+        },
+        "allValue": ".*"
+      },
+      {
+        "name": "asset_id",
+        "label": "Servidores",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": {
+          "query": "query_result(max by (asset_id,name) (dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\"}))",
+          "refId": "asset_id"
+        },
+        "definition": "query_result(max by (asset_id,name) (dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\"}))",
+        "refresh": 2,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "options": [],
+        "current": {
+          "text": "Todos",
+          "value": "$__all"
+        },
+        "allValue": ".*",
+        "regex": "/asset_id=\"(?<value>[^\"]+)\".*name=\"(?<text>[^\"]+)\"/"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 75,
+      "type": "text",
+      "title": "Cliente — Servidores",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 4
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Resumo de **todas as unidades do cliente** no topo. Os filtros Unidade e Servidores controlam as seções abaixo; por padrão todos os ativos são exibidos. Expanda cada seção para ver os gráficos.\n\n**Verde:** OK · **Cinza:** Sem Dados · **Amarelo:** Atenção · **Vermelho:** Grave · **Roxo:** Crítico · **Preto:** Pausado."
+      }
+    },
+    {
+      "id": 76,
+      "type": "stat",
+      "title": "Estado do cliente",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              },
+              {
+                "color": "#8e959f",
+                "value": 1
+              },
+              {
+                "color": "#f2cc0c",
+                "value": 2
+              },
+              {
+                "color": "#e02f44",
+                "value": 3
+              },
+              {
+                "color": "#a64dd8",
+                "value": 4
+              },
+              {
+                "color": "#000000",
+                "value": 5
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "OK",
+                  "color": "#299c46",
+                  "index": 0
+                },
+                "1": {
+                  "text": "Sem Dados",
+                  "color": "#8e959f",
+                  "index": 1
+                },
+                "2": {
+                  "text": "Atenção",
+                  "color": "#f2cc0c",
+                  "index": 2
+                },
+                "3": {
+                  "text": "Grave",
+                  "color": "#e02f44",
+                  "index": 3
+                },
+                "4": {
+                  "text": "Crítico",
+                  "color": "#a64dd8",
+                  "index": 4
+                },
+                "5": {
+                  "text": "Pausado",
+                  "color": "#000000",
+                  "index": 5
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "Sem Dados",
+                  "color": "#8e959f"
+                }
+              }
+            }
+          ],
+          "noValue": "Sem Dados"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "dnk_client_category_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"}",
+          "refId": "A",
+          "legendFormat": "{{CLIENTE}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 77,
+      "type": "stat",
+      "title": "Servidores cadastrados",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "gridPos": {
+        "x": 6,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "dnk_client_category_assets{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"}",
+          "refId": "A",
+          "legendFormat": "{{CLIENTE}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 78,
+      "type": "stat",
+      "title": "Servidores com problemas",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "count((dnk_asset_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"} >= 2) < 5) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{CLIENTE}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 79,
+      "type": "stat",
+      "title": "Servidores sem dados",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 4,
+        "w": 6,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "count(dnk_asset_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"} == 1) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{CLIENTE}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 80,
+      "type": "stat",
+      "title": "Ativos habilitados em OK",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 8,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "100 * (count(dnk_asset_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"} == 0) or vector(0)) / (count(dnk_asset_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"} != 5) > 0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 81,
+      "type": "stat",
+      "title": "Monitoramento pausado",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 8,
+        "w": 8,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "count(dnk_asset_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"} == 5) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 82,
+      "type": "stat",
+      "title": "Ativos habilitados",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 8,
+        "w": 8,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "expr": "count(dnk_asset_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\"} != 5) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 98,
+      "type": "row",
+      "title": "${asset_id:text} — detalhes técnicos",
+      "collapsed": true,
+      "repeat": "asset_id",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 24,
+        "h": 1
+      },
+      "panels": [
+        {
+          "id": 83,
+          "type": "stat",
+          "title": "Estado do ativo",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 13,
+            "w": 6,
+            "h": 5
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  },
+                  {
+                    "color": "#8e959f",
+                    "value": 1
+                  },
+                  {
+                    "color": "#f2cc0c",
+                    "value": 2
+                  },
+                  {
+                    "color": "#e02f44",
+                    "value": 3
+                  },
+                  {
+                    "color": "#a64dd8",
+                    "value": 4
+                  },
+                  {
+                    "color": "#000000",
+                    "value": 5
+                  }
+                ]
+              },
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": {
+                      "text": "OK",
+                      "color": "#299c46",
+                      "index": 0
+                    },
+                    "1": {
+                      "text": "Sem Dados",
+                      "color": "#8e959f",
+                      "index": 1
+                    },
+                    "2": {
+                      "text": "Atenção",
+                      "color": "#f2cc0c",
+                      "index": 2
+                    },
+                    "3": {
+                      "text": "Grave",
+                      "color": "#e02f44",
+                      "index": 3
+                    },
+                    "4": {
+                      "text": "Crítico",
+                      "color": "#a64dd8",
+                      "index": 4
+                    },
+                    "5": {
+                      "text": "Pausado",
+                      "color": "#000000",
+                      "index": 5
+                    }
+                  }
+                },
+                {
+                  "type": "special",
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "Sem Dados",
+                      "color": "#8e959f"
+                    }
+                  }
+                }
+              ],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{UNIDADE}} · {{name}} · {{instance}}",
+              "instant": true,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "textMode": "value_and_name",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": true,
+              "fields": ""
+            },
+            "wideLayout": true
+          }
+        },
+        {
+          "id": 84,
+          "type": "table",
+          "title": "Identificação e motivo do estado",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 6,
+            "y": 13,
+            "w": 18,
+            "h": 5
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": true,
+              "format": "table"
+            }
+          ],
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "excludeByName": {
+                  "Time": true,
+                  "__name__": true,
+                  "Value": true,
+                  "asset_id": true,
+                  "category": true
+                },
+                "indexByName": {
+                  "CLIENTE": 0,
+                  "UNIDADE": 1,
+                  "name": 2,
+                  "instance": 3,
+                  "reason": 4
+                },
+                "renameByName": {
+                  "CLIENTE": "Cliente",
+                  "UNIDADE": "Unidade",
+                  "name": "Ativo",
+                  "instance": "Destino / servidor",
+                  "reason": "Motivo"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": 85,
+          "type": "stat",
+          "title": "Processamento",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 18,
+            "w": 4,
+            "h": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_cpu_percent{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": true,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": true,
+              "fields": ""
+            },
+            "wideLayout": true
+          }
+        },
+        {
+          "id": 86,
+          "type": "stat",
+          "title": "Memória RAM",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 4,
+            "y": 18,
+            "w": 4,
+            "h": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_ram_percent{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": true,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": true,
+              "fields": ""
+            },
+            "wideLayout": true
+          }
+        },
+        {
+          "id": 87,
+          "type": "stat",
+          "title": "Disco ocupado (maior volume)",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 8,
+            "y": 18,
+            "w": 4,
+            "h": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_disk_percent{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": true,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": true,
+              "fields": ""
+            },
+            "wideLayout": true
+          }
+        },
+        {
+          "id": 88,
+          "type": "stat",
+          "title": "Tráfego de rede",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 18,
+            "w": 4,
+            "h": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bps",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_network_bps{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": true,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": true,
+              "fields": ""
+            },
+            "wideLayout": true
+          }
+        },
+        {
+          "id": 89,
+          "type": "stat",
+          "title": "Serviços automáticos com falha",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 16,
+            "y": 18,
+            "w": 4,
+            "h": 4
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados"
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_failed_services{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": true,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "values": true,
+              "fields": ""
+            },
+            "wideLayout": true
+          }
+        },
+        {
+          "id": 90,
+          "type": "timeseries",
+          "title": "Processamento — histórico",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 22,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_cpu_percent{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 91,
+          "type": "timeseries",
+          "title": "Memória RAM — histórico",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 22,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_ram_percent{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 92,
+          "type": "timeseries",
+          "title": "Disco ocupado (maior volume) — histórico",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 30,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_disk_percent{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 93,
+          "type": "timeseries",
+          "title": "Tráfego de rede — histórico",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 30,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bps",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_network_bps{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 94,
+          "type": "timeseries",
+          "title": "Serviços automáticos com falha — histórico",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 38,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_failed_services{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 95,
+          "type": "state-timeline",
+          "title": "Histórico de status",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 46,
+            "w": 24,
+            "h": 5
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "none",
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  },
+                  {
+                    "color": "#8e959f",
+                    "value": 1
+                  },
+                  {
+                    "color": "#f2cc0c",
+                    "value": 2
+                  },
+                  {
+                    "color": "#e02f44",
+                    "value": 3
+                  },
+                  {
+                    "color": "#a64dd8",
+                    "value": 4
+                  },
+                  {
+                    "color": "#000000",
+                    "value": 5
+                  }
+                ]
+              },
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": {
+                      "text": "OK",
+                      "color": "#299c46",
+                      "index": 0
+                    },
+                    "1": {
+                      "text": "Sem Dados",
+                      "color": "#8e959f",
+                      "index": 1
+                    },
+                    "2": {
+                      "text": "Atenção",
+                      "color": "#f2cc0c",
+                      "index": 2
+                    },
+                    "3": {
+                      "text": "Grave",
+                      "color": "#e02f44",
+                      "index": 3
+                    },
+                    "4": {
+                      "text": "Crítico",
+                      "color": "#a64dd8",
+                      "index": 4
+                    },
+                    "5": {
+                      "text": "Pausado",
+                      "color": "#000000",
+                      "index": 5
+                    }
+                  }
+                },
+                {
+                  "type": "special",
+                  "options": {
+                    "match": "null",
+                    "result": {
+                      "text": "Sem Dados",
+                      "color": "#8e959f"
+                    }
+                  }
+                }
+              ],
+              "noValue": "Sem Dados",
+              "custom": {
+                "lineWidth": 0,
+                "fillOpacity": 85,
+                "spanNulls": false
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "max by (asset_id,CLIENTE,UNIDADE,instance,name) (dnk_asset_status{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"}) and on(asset_id) dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end()",
+              "refId": "A",
+              "legendFormat": "{{name}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "showValue": "auto",
+            "rowHeight": 0.8,
+            "legend": {
+              "displayMode": "list",
+              "placement": "bottom"
+            },
+            "tooltip": {
+              "mode": "single"
+            }
+          }
+        },
+        {
+          "id": 96,
+          "type": "timeseries",
+          "title": "Ocupação por disco / volume",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 0,
+            "y": 51,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "((100 * (1 - windows_logical_disk_free_bytes{CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\"} / (windows_logical_disk_size_bytes{CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\"} > 0))) or (100 * (1 - node_filesystem_avail_bytes{CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",fstype!~\"tmpfs|overlay|squashfs\"} / (node_filesystem_size_bytes{CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\"} > 0)))) and on(CLIENTE,UNIDADE,instance) max by (CLIENTE,UNIDADE,instance) (dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end())",
+              "refId": "A",
+              "legendFormat": "{{volume}} {{mountpoint}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        },
+        {
+          "id": 97,
+          "type": "timeseries",
+          "title": "Rede por interface",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "gridPos": {
+            "x": 12,
+            "y": 51,
+            "w": 12,
+            "h": 8
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "bps",
+              "color": {
+                "mode": "palette-classic"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "#299c46",
+                    "value": null
+                  }
+                ]
+              },
+              "mappings": [],
+              "noValue": "Sem Dados",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 2,
+                "fillOpacity": 8,
+                "showPoints": "never",
+                "spanNulls": false,
+                "axisLabel": "",
+                "axisPlacement": "auto",
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "targets": [
+            {
+              "expr": "(8 * (rate(windows_net_bytes_received_total{CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\"}[3m]) or rate(node_network_receive_bytes_total{CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",device!=\"lo\"}[3m]))) and on(CLIENTE,UNIDADE,instance) max by (CLIENTE,UNIDADE,instance) (dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end())",
+              "refId": "A",
+              "legendFormat": "Recebido · {{nic}} {{device}}",
+              "instant": false,
+              "format": "time_series"
+            },
+            {
+              "expr": "(8 * (rate(windows_net_bytes_sent_total{CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\"}[3m]) or rate(node_network_transmit_bytes_total{CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",device!=\"lo\"}[3m]))) and on(CLIENTE,UNIDADE,instance) max by (CLIENTE,UNIDADE,instance) (dnk_asset_info{category=\"servidores\",CLIENTE=~\"${CLIENTE:regex}\",UNIDADE=~\"${UNIDADE:regex}\",asset_id=~\"${asset_id:regex}\"} @ end())",
+              "refId": "B",
+              "legendFormat": "Enviado · {{nic}} {{device}}",
+              "instant": false,
+              "format": "time_series"
+            }
+          ],
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "lastNotNull",
+                "mean",
+                "max"
+              ]
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "description": "Todos os ativos do cliente, com resumo consolidado e uma seção expansível por ativo. CLIENTE seleciona uma empresa; UNIDADE e ativos permitem filtrar sem limitar por padrão a um único ativo. Métricas sem suporte ou desabilitadas aparecem Sem Dados. Ativos excluídos não aparecem.",
+  "annotations": {
+    "list": []
+  }
+}

@@ -18,13 +18,13 @@ discovery.relabel "vm" {
 	}
 
 	rule {
-		target_label = "Cliente"
-		replacement  = "DunkerLAB"
+		target_label = "CLIENTE"
+		replacement  = sys.env("MONITOR_CLIENTE")
 	}
 
 	rule {
-		target_label = "Unidade"
-		replacement  = "VM"
+		target_label = "UNIDADE"
+		replacement  = sys.env("MONITOR_UNIDADE")
 	}
 
 	rule {
@@ -60,8 +60,12 @@ loki.relabel "syslog" {
 	}
 
 	rule {
-		target_label = "Cliente"
+		target_label = "CLIENTE"
 		replacement  = "SemMapeamento"
+	}
+	rule {
+		target_label = "UNIDADE"
+		replacement = "SemMapeamento"
 	}
 	// Adicione regras por IP de origem para associar eventos ao cliente.
 }

@@ -1,0 +1,6 @@
+{
+  "access": {"host": "172.16.27.51", "bind": "0.0.0.0", "port": 8443, "tls_mode": "http", "public_url": "http://172.16.27.51:8443"},
+  "certificates": {"email": "", "cert_file": "", "key_file": ""},
+  "checks": [{"name": "Acesso Dunker", "host": "172.16.27.51", "port": 8443, "tls": false, "enabled": true}],
+  "VM_NAME": "SRV-DUNKER", "SYSLOG_BIND": "127.0.0.1", "GRAFANA_ORG_ID": 1
+}

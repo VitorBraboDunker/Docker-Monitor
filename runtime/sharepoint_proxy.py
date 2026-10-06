@@ -1,4 +1,5 @@
 """Authenticated adapter for the existing Dunker administration server."""
+import global_config
 import json
 import os
 import urllib.error
@@ -31,7 +32,7 @@ def handle(handler):
         if handler.command in ('POST','PUT'):
             # Reuse the central page's JSON and Origin validation.
             data=json.dumps(handler.payload()).encode()
-        token=(PRIVATE/'gateway_token').read_text().strip()
+        token=global_config.get('system','gateway_token','')
         req=urllib.request.Request(UPSTREAM+'/api/'+path[len('/api/sharepoint/'):],
             data=data,headers={'Authorization':'Bearer '+token,'Content-Type':'application/json'},method=handler.command)
         try: response=urllib.request.urlopen(req,timeout=30)

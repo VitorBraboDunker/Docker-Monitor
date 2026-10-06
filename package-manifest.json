@@ -1,25 +1,27 @@
 {
-  "version": "1.4.3",
+  "version": "1.0.0",
+  "release_channel": "official",
+  "previous_beta_version": "1.4.3",
   "files": [
     {
       "path": ".dockerignore",
       "mode": "managed",
-      "sha256": "233b4b64877ed2869317ba00ed790b4d1b3f262cdabcf1ebed3eee970a7811cc"
+      "sha256": "6998fc96ca1b4b7767983aa3eac63a87520d58fd30a476f70a66e36a4305b0f5"
     },
     {
       "path": ".env.example",
       "mode": "managed",
-      "sha256": "507e9208ad20946690178b25b2d8ab40d246b51d6d6533c93ef1e76258ab723a"
+      "sha256": "0f9021d3f253f87c0b045e4d59e1b6b31aaf9187b654ea0fd4038ad0175a9f9a"
     },
     {
       "path": ".gitignore",
       "mode": "managed",
-      "sha256": "f295822a74e6e0af7d661185a14dbf0d6d8f59f5c08674919a39b2136eba53b2"
+      "sha256": "322fd638918ec20e2fa1fe0f92e263358d4c62d0e7fd95339b22cbda2ccd8ab9"
     },
     {
       "path": "ATUALIZAR-PROJETO.ps1",
       "mode": "managed",
-      "sha256": "361d7cc6767125c2bdc9e3fefb5fb419c0288ff3369352fd59e38bdce3425988"
+      "sha256": "5b650f73e145aae245b9ffcbb8f1bb275090a93f4f961e6989d5657f0245a20f"
     },
     {
       "path": "Dockerfile.separado",
@@ -39,7 +41,7 @@
     {
       "path": "README.md",
       "mode": "managed",
-      "sha256": "4aeb25c979082ffa2201e060149470b6fbbafcae04489676fc41e01f3f729c51"
+      "sha256": "040db497a7ec31fe5a09ee569be39aafeb9a87f0299e123d35bbdf1572db18d2"
     },
     {
       "path": "VERIFICAR-PROJETO.ps1",
@@ -49,27 +51,37 @@
     {
       "path": "VERSION",
       "mode": "managed",
-      "sha256": "bd31e8d9cf8d14a1e9e3fdf3b9f6a524819aed0d1b14627523c6765767c7d8f1"
+      "sha256": "59854984853104df5c353e2f681a15fc7924742f9a2e468c29af248dce45ce03"
     },
     {
       "path": "atualizar-projeto.sh",
       "mode": "managed",
-      "sha256": "a0926a8a8c4fcbea352da006eef977e4d036a4e1fe3c580b0e89aaebdda67339"
+      "sha256": "4dde90b7775677791119611f218859d98ac82cb96e56277cc522ebc8a7a8fc17"
     },
     {
       "path": "compose.separado.yaml",
       "mode": "managed",
-      "sha256": "900c374df906afb16a9413415a82e48c8a6420b7f731fbb7be4d92b9be3bb49f"
+      "sha256": "8714fd47d50938c48eab631ad84a025c3fcc429f609a21c658b0b8c6704127dc"
+    },
+    {
+      "path": "config/admin/access-ui.js",
+      "mode": "managed",
+      "sha256": "0c6601d11762a1bfe7c14477f6215ac9f4deacb27ed06895c0daacd2a8e54687"
     },
     {
       "path": "config/admin/index.html",
       "mode": "managed",
-      "sha256": "35b1fc0e99bdb1c4f09b9035bb37300d8080efe79522eed8c95a35a7fdd767dc"
+      "sha256": "a190e8535f29517345f7e17827827f56d3539345b86d35487f3083c81c8b6b4b"
+    },
+    {
+      "path": "config/admin/operations-ui.js",
+      "mode": "managed",
+      "sha256": "30112546d403f6e06571ba22457805bf93f2156e56a0bd16b687666e6f325507"
     },
     {
       "path": "config/admin/sharepoint-ui.js",
       "mode": "managed",
-      "sha256": "5809bb9bac647ce491e48d363de873a81e49a62133d3a4050c5472e69731949e"
+      "sha256": "6b50428b030a4e5d09d0c126895f3d6d50b2993833b59b9e118c5e2400e152e4"
     },
     {
       "path": "config/admin/sharepoint.css",
@@ -88,13 +100,8 @@
     },
     {
       "path": "config/alloy/central.alloy",
-      "mode": "seed",
-      "sha256": "fb79ffb93cd7c2701d0b37f8af136927c3e26fe75096f629c87d5c9aee2d06d7"
-    },
-    {
-      "path": "config/blackbox.yml",
-      "mode": "seed",
-      "sha256": "10c73278acfe8bc13c7b1ac0584712b6e813812bc32e494c5e4023a7bb8ce091"
+      "mode": "managed",
+      "sha256": "93bd80100c0997688b1b7a879d34ab5ec9686e57fb63e061e9de7d332cadb1ec"
     },
     {
       "path": "config/caddy/Caddyfile.example",
@@ -102,59 +109,74 @@
       "sha256": "ef7b2560e8a43e204823b9872d8d721f7db130fa44f3fd6226781e9b6b70b11e"
     },
     {
-      "path": "config/grafana/dashboards/dnk-cliente-integrado.json",
+      "path": "config/excluidos/README.md",
       "mode": "managed",
-      "sha256": "ed9a0da534f8c87892b7ef15d523c9597f038e963ae3dc1098f974099b7d1d8b"
+      "sha256": "4be9460209d6d1181138d01bd6dd47b711b69fb7a589dbc48af81dd88417ce83"
     },
     {
-      "path": "config/grafana/dashboards/dnk-clientes-integrado.json",
+      "path": "config/global/credentials.json.example",
       "mode": "managed",
-      "sha256": "0d9f7996d6fcb2dfb9755367dfe76b746b3ff49af3ce19b669309a6051d192f2"
+      "sha256": "caa4ee497c2445ca376b83c35489375f2b61c15b80fd4e2fca28cc69ac4f4b43"
     },
     {
-      "path": "config/grafana/dashboards/dnk-firewall-detalhes.json",
+      "path": "config/global/domains.json.example",
       "mode": "managed",
-      "sha256": "8acb1549dc571e94cf2a3809f84b896d11cee27cfcdd952c520eabd897d99e48"
+      "sha256": "50f7fb2a94a55e2926d5ff2029c913a1457003dfd16dc86d506709c45eab73b2"
     },
     {
-      "path": "config/grafana/dashboards/dnk-firewalls.json",
-      "mode": "managed",
-      "sha256": "3491586e691cc239ab65d348a32d8e9f67fa50c34749a70c6a3fe8054b2bf339"
+      "path": "config/global/status.json",
+      "mode": "seed",
+      "sha256": "5c1f5168a5df35fd4928a9f1310dfee73fb91b4eebd264fad87c7c87f1f98eed"
     },
     {
-      "path": "config/grafana/dashboards/dnk-geral.json",
+      "path": "config/grafana/dashboards/dnk-conformidade.json",
       "mode": "managed",
-      "sha256": "a130df0eb639a80a9f18351bad3d2ddd6789f2f3938e8920d8702ab80849437e"
+      "sha256": "ef49dafa599e94f99481c05d5b164f7f9952df4438c0fe31be34f79b72032fc0"
+    },
+    {
+      "path": "config/grafana/dashboards/dnk-dominios.json",
+      "mode": "managed",
+      "sha256": "7def85b48a0eefe7cfbf5d0cd25c90b9f9fd30c172b75baa793813bcd7cd9eb0"
+    },
+    {
+      "path": "config/grafana/dashboards/dnk-firewalls-detalhes.json",
+      "mode": "managed",
+      "sha256": "6dca1ad325ec64aa75c5a5669a087f38442cf97e9cf353332d1614bbefceceaf"
+    },
+    {
+      "path": "config/grafana/dashboards/dnk-firewalls-geral.json",
+      "mode": "managed",
+      "sha256": "5dd710dcaf33a4367000dcb6a7f327b5c115b8370397b002effcbdf379dab6a5"
+    },
+    {
+      "path": "config/grafana/dashboards/dnk-links-detalhes.json",
+      "mode": "managed",
+      "sha256": "7690221b47d7fd43441a084459c82d83f2a3be23a68a03f8f38b88917e14d797"
     },
     {
       "path": "config/grafana/dashboards/dnk-links-geral.json",
       "mode": "managed",
-      "sha256": "166039f2a6fe7159fb7871ae1cfbba2a5a690bde9fd258cb7433919409ddc671"
+      "sha256": "adfb5b6066a30936417641c2f7e8dd8b9165465f259fc6b61e4d2dac1e291cd5"
     },
     {
-      "path": "config/grafana/dashboards/dnk-links.json",
+      "path": "config/grafana/dashboards/dnk-servidores-detalhes.json",
       "mode": "managed",
-      "sha256": "3bef84dd6cdd4d1cf07c97aa987214e53d923e4a963e7570843979214c299a1d"
+      "sha256": "8e550a02e0f486723c6fe16fcb29081ec6ee5151f435244f00aa22b52de692b1"
     },
     {
-      "path": "config/grafana/dashboards/dnk-logs.json",
+      "path": "config/grafana/dashboards/dnk-servidores-geral.json",
       "mode": "managed",
-      "sha256": "432bf3b16c6b9ba61de9bac8b32f4ec21d42824bf9d19e80ce4e25bb41ef5dc2"
-    },
-    {
-      "path": "config/grafana/dashboards/dnk-servidores.json",
-      "mode": "managed",
-      "sha256": "fa59f7b3f96061fb2056977445243ae9d0e3afff32f2618502482c281aefbfdb"
+      "sha256": "efafd08993c050abf0b03b68141cd572949e10bb087b0d9be2c912fa6d8fb22e"
     },
     {
       "path": "config/grafana/dashboards/dnk-sharepoint-detalhes.json",
       "mode": "managed",
-      "sha256": "4fe2ca03c8053570283c62f24e4067352406ab828a865eebed4c609bc6bc4663"
+      "sha256": "4e438f38a28f15b8c695a9d6616536c96194ef4e7919e9f557c3db63ba2267d9"
     },
     {
       "path": "config/grafana/dashboards/dnk-sharepoint-geral.json",
       "mode": "managed",
-      "sha256": "422f499b831283a133da57cc04656118bd525f28e520e3aa55c7244a1e9c0bde"
+      "sha256": "26bdfe5d3b5bf88b9f377742eb1fe67c74e2119e760552862509f1c969961caa"
     },
     {
       "path": "config/grafana/plugins/dunker-integracoes-app/img/logo.svg",
@@ -164,27 +186,27 @@
     {
       "path": "config/grafana/plugins/dunker-integracoes-app/module.js",
       "mode": "managed",
-      "sha256": "e75dba6e0b6c3995ee5d2f80c3a52895c281d387187e0e7ebc91449d62ab587a"
+      "sha256": "625e620cecf26dd2a173fded7e93b8ed6efe7c8d95a651f2017955c688403181"
     },
     {
       "path": "config/grafana/plugins/dunker-integracoes-app/plugin.json",
       "mode": "managed",
-      "sha256": "450d2a13309d40ccd6e08c0b22201b1de38995b2f5bbf5a2f729f9ef7b381537"
+      "sha256": "063971b13990e1fe8e46c88da5ebcb27988551a08f670aebc7df7c3eb92933f6"
     },
     {
       "path": "config/grafana/provisioning/dashboards/dashboards.yml",
-      "mode": "seed",
-      "sha256": "cda42c7f87c9d739501dbf8914fc1b0cee2bbc1f364c0e3d9b827ce7ec6f6fe2"
+      "mode": "managed",
+      "sha256": "723f703b3aa99ec43188e4a40b87c3dd4facac7c7efed85a8f7792ed1cded276"
     },
     {
       "path": "config/grafana/provisioning/datasources/datasources.yml",
-      "mode": "seed",
+      "mode": "managed",
       "sha256": "580406f466a17fca85b53e019a783bf50a1dc3af5d3b391ed743deb1f8f82a24"
     },
     {
       "path": "config/grafana/provisioning/datasources/sharepoint.yml",
       "mode": "managed",
-      "sha256": "5e7eab86c52aadaa869a3dc4231d3c9df74ed340929ef44e9ee8d4fd78e33d95"
+      "sha256": "dd711a0e5fc9711f2e5909a136bb04cf2d9d511540852f39a2c416c1f1038499"
     },
     {
       "path": "config/integracoes/modules.json",
@@ -203,38 +225,18 @@
     },
     {
       "path": "config/loki-separado.yml",
-      "mode": "seed",
+      "mode": "managed",
       "sha256": "96b9dad481f8fc65e759cf25233116ce083de7efc1e7f6b273aebb43fd33034b"
     },
     {
       "path": "config/prometheus/rules.yml",
       "mode": "managed",
-      "sha256": "cf673958f151d1e2ae08425b680743cad83dc70b19de137b1158f231634a0c18"
+      "sha256": "00c3c0355bc8a56be458a9bd3dc36adf671f13f6e5e089bda141ded946330955"
     },
     {
       "path": "config/prometheus/separado.yml",
       "mode": "managed",
-      "sha256": "22b6d9df4a0510f3b7867b4d9a58c40832f5ac018ac076cd1a604107d737e1dc"
-    },
-    {
-      "path": "config/secrets/credentials.json.example",
-      "mode": "managed",
-      "sha256": "60fbf6e67942fc6cf0b7eef11f7abfe7799387a4aac7954a917e48d47136f8f0"
-    },
-    {
-      "path": "config/sharepoint/prometheus.yml",
-      "mode": "managed",
-      "sha256": "6ae2c653f85216d2a5cbe6846bf24a3cfc304bcbf1125e44cdea5a46741b38ba"
-    },
-    {
-      "path": "config/sharepoint/rules.yml",
-      "mode": "managed",
-      "sha256": "c4ef327c0ee06e69eb4632938fc0c5ff51259ff1796a7af41e028c6ea84892f5"
-    },
-    {
-      "path": "config/snmp-v3.yml.example",
-      "mode": "managed",
-      "sha256": "b3e30796e6c93c73290e16a70075c808016bda687ce5455d472cfa8baab88f81"
+      "sha256": "bae20bcfe1ec00d23824bcad3acabcc9368b4ac68a1850c80493f553db0441df"
     },
     {
       "path": "config/snmp.yml.example",
@@ -267,19 +269,39 @@
       "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
     },
     {
+      "path": "docs/AUDITORIA-V1.md",
+      "mode": "managed",
+      "sha256": "5cf39a8b39e254e39cadc8819836469b584e9f2d2fef1845154e4b2d0ede7083"
+    },
+    {
+      "path": "docs/CONFIGURACAO-GLOBAL.md",
+      "mode": "managed",
+      "sha256": "8cf14d56426f471c38e57015d0982d4a1c59fed10215f999f2a93bad5719867e"
+    },
+    {
       "path": "docs/INTEGRACOES-SNMP.md",
       "mode": "managed",
-      "sha256": "13cf12efb2c4a7a82ff3ba1ddbc87a63790d527cdb71c0c2d1dbe227d949f452"
+      "sha256": "891046e7b5b2538cf02a93830644955b3e63df6ed3a84433ab2748d96bdbc4ed"
+    },
+    {
+      "path": "docs/PERMISSOES-GRAFANA.md",
+      "mode": "managed",
+      "sha256": "8c0b192b89ce8ffc74c13f109c41e7b73426f7c11aec2f9b9affb1d2339ec1fc"
     },
     {
       "path": "docs/SHAREPOINT.md",
       "mode": "managed",
-      "sha256": "7e927f486655b5b4d34130e339721bc9328bac0714071b9d17cc27448e0521ab"
+      "sha256": "2d8f9a30f51d4ad2e287008466224f857781dc845ee9bf075f8f6aae82871ce6"
+    },
+    {
+      "path": "docs/STATUS.md",
+      "mode": "managed",
+      "sha256": "a096da628e11a1084bf78a858edf95ae3b581ade792a0c8f32085aa5bfdbdeb2"
     },
     {
       "path": "docs/VALIDACAO.md",
       "mode": "managed",
-      "sha256": "44eb596894f1982c9e51f2824e7e557a6c4f9627e7963fc3003d515371fac96c"
+      "sha256": "c9a9695f21e57f8980c6136049df2e0e7f4c06434d105723ed45985e29ec2a07"
     },
     {
       "path": "iniciar-projeto.sh",
@@ -289,12 +311,12 @@
     {
       "path": "inventario-exemplo.csv",
       "mode": "managed",
-      "sha256": "e0a4efdd92f7616f87442c9147c15912ff25e044f27406937a51f3e3357df9b3"
+      "sha256": "82b81a2ae7fcd9a7ed5001d579116363c46c75d92714842d873313bd40ad85e8"
     },
     {
       "path": "inventario.csv",
       "mode": "seed",
-      "sha256": "61f011bb5ef3be4d6fa3ef3b83c50c6856635cfe8ff7a77c907e7b127fd2b7b5"
+      "sha256": "596dd58df612f52c84cacc4eff5e72d530cb0e49a52e5d8c60be3db30e8ef2bf"
     },
     {
       "path": "parar-projeto.sh",
@@ -304,12 +326,22 @@
     {
       "path": "runtime/admin_monitor.py",
       "mode": "managed",
-      "sha256": "65eb748f58955a673da7ef1f8585e4c0a5982f7fe42f0517390751a33962091f"
+      "sha256": "343d98d04a17107ce23c0f4662030e2b7389c1ee48b1e47fb13bf35e5fd05f17"
     },
     {
-      "path": "runtime/health.py",
+      "path": "runtime/alloy_builder.py",
       "mode": "managed",
-      "sha256": "674abcebd302c706015d0b43d096b2f48d211a3b8e4bf5c18e7a2387a4dc7971"
+      "sha256": "0ed44133752696ed1168fe9139603e094b50bbea105b11456d02fbe89d8f3c2b"
+    },
+    {
+      "path": "runtime/global_config.py",
+      "mode": "managed",
+      "sha256": "d08366467da5d7bdba5983b0aec282f51952d772bea8243f1ce7155bf1bdd7a4"
+    },
+    {
+      "path": "runtime/grafana_access.py",
+      "mode": "managed",
+      "sha256": "f6651d91e6db6f80471790503c2a5183dbcefca120da4e60ce8c85f73e980639"
     },
     {
       "path": "runtime/monitor_probes.py",
@@ -319,32 +351,47 @@
     {
       "path": "runtime/ping_exporter.py",
       "mode": "managed",
-      "sha256": "9cdde1ecb37727aa340d3652e401e1680e2f210cf350204caa6e9cdcd9d96781"
+      "sha256": "0ac812ac75273573ffe816af88286c7aba302025e65af73409bf257351637724"
+    },
+    {
+      "path": "runtime/release_state.py",
+      "mode": "managed",
+      "sha256": "13e087989020b7af8c16de1110db9140bbaa005a6e69fceaf6c20cde176990eb"
     },
     {
       "path": "runtime/sharepoint_activate.py",
       "mode": "managed",
-      "sha256": "fec2b9fa1352a5176ec2c8bd4d0c67b005bc5469ea64cd5e96b67299f013fc1e"
+      "sha256": "87aae0a9d3d260b9435953a0aa6f8a37deb270c4791e058e77058601afcf1666"
     },
     {
       "path": "runtime/sharepoint_collector.py",
       "mode": "managed",
-      "sha256": "6019bff1041bd93eb04258142fdd48778c2f911faf97e07334da929fb4af2095"
+      "sha256": "0c445027a638d47ea58d5ad1f328236f0258d3eaa755caeb0db4342aa5feb183"
     },
     {
       "path": "runtime/sharepoint_proxy.py",
       "mode": "managed",
-      "sha256": "e25bd87ad4d97ae83e7328179dbb50ec64b123a0130cfc144c7cbb6b2d57ba93"
+      "sha256": "9cbb77b31b7a183ac8c89b4e44deb25151917f603f994995c6bd150da20297e4"
     },
     {
       "path": "runtime/snmp_manager.py",
       "mode": "managed",
-      "sha256": "cf7a9716122d80564b23c74565c3e670d16e0ce9853a4cc9c5d7e722d08bcbe2"
+      "sha256": "664df6409481f1dc6a8060e5ab6db3b5540f23324384a49c1e6246047dcfdfa2"
+    },
+    {
+      "path": "runtime/status_engine.py",
+      "mode": "managed",
+      "sha256": "bbfb5ddb64be12cdee1492d154e3c988f58f8cd3841ba49b1e94c99e54a88db6"
+    },
+    {
+      "path": "scripts/build-dashboards.py",
+      "mode": "managed",
+      "sha256": "18911d852fce8e37e0508614fdb6af4cbff37a285f3f2bfd1691e91179dfb3d2"
     },
     {
       "path": "scripts/build-plugin.py",
       "mode": "managed",
-      "sha256": "a56df836f558fe02ee8e970939dc6f85053a2d0fe4a8d7c7b1013401ca97e77c"
+      "sha256": "6a8917defd77ff582f779811491f7eaaea68358bea777cac604dfe2e67324246"
     },
     {
       "path": "scripts/docker_audit.py",
@@ -354,12 +401,17 @@
     {
       "path": "scripts/gerar-agente.py",
       "mode": "managed",
-      "sha256": "9bb6c7515fc8197e7de3a5dc565a3f3ed0a5719f18284b49447950cf42e15406"
+      "sha256": "dadd5877fa315a2b84494a5d2703ce6e886c8243311f2469a610671d06a79e74"
+    },
+    {
+      "path": "scripts/global_settings.py",
+      "mode": "managed",
+      "sha256": "bd51f299bee94b5c191c8daf7d305b8c64210473d07e844f93689fed6f1893ff"
     },
     {
       "path": "scripts/importar-inventario.py",
       "mode": "managed",
-      "sha256": "40371d4e707d2bf9ab155a07820eb852319cc66afb5e435a5612959bbeb81e10"
+      "sha256": "63cfbb43d46f96f25313b1a628e5baf50e32e64c1fb8f442f1cd19acb005c944"
     },
     {
       "path": "scripts/instalar-docker-ubuntu.sh",
@@ -367,9 +419,14 @@
       "sha256": "f37e6d21b2431f615b63925c8a8bb872bd3ddcdaf6b2cee771151106f857c351"
     },
     {
+      "path": "scripts/package-release.py",
+      "mode": "managed",
+      "sha256": "9532eaa425647c54595036414f17c325a66dd96c09160127c7d954c0bc981457"
+    },
+    {
       "path": "scripts/project_manager.py",
       "mode": "managed",
-      "sha256": "238a01d5660c7fd88001e136198c493b603ba4de787906b6a864a1bcdef157c4"
+      "sha256": "186e0802217768a4b6db0d5ee5a812851998c624cb3cd6d3c4527ced9b4dde69"
     },
     {
       "path": "scripts/vendor/PyYAML-LICENSE.txt",
@@ -467,11 +524,6 @@
       "sha256": "4447f4c3c2d1d0849489f4f1a61cdbc72cd9d94ae8a0a61620689c0572106bc9"
     },
     {
-      "path": "tests/snmp-rules.yml",
-      "mode": "managed",
-      "sha256": "f3678c3c19fd089fbcbe803cb9dcd235adbd04625e3c7ef6ab2b99561865594d"
-    },
-    {
       "path": "tests/snmp_fixture.py",
       "mode": "managed",
       "sha256": "e8187f2b57d365fc06ea959a0330987898d287509f78511919e1f606efa8d676"
@@ -487,54 +539,14 @@
       "sha256": "6e79dd26a07a3583157c4cb57bba22f0991f9caa1b77453061f05457091c3e87"
     },
     {
-      "path": "tests/test_monitor_probes.py",
-      "mode": "managed",
-      "sha256": "76d93008121fa32fae2dfc863a422ea7991a671bfc94d6457a020d90c08fb11e"
-    },
-    {
-      "path": "tests/test_plugin.js",
-      "mode": "managed",
-      "sha256": "2a158e3274cd250f4c57ec451377df32bfdf7073f81eb323fe0a17b535a155a0"
-    },
-    {
-      "path": "tests/test_project_manager.py",
-      "mode": "managed",
-      "sha256": "90bf3cb16d2d8ada2f04746c7c2294a186fde497aa479c8c88e7ad31510d05e9"
-    },
-    {
-      "path": "tests/test_proxy.py",
-      "mode": "managed",
-      "sha256": "be2ad19fe26caa2b7a362ee178cdecb83fd8ae9a92025de051ad02b0aaed3898"
-    },
-    {
-      "path": "tests/test_sharepoint.py",
-      "mode": "managed",
-      "sha256": "6501697ab3c14cde8f6def06e71b7a9405c9b9346d5ecde22582dbccda02bbc1"
-    },
-    {
-      "path": "tests/test_snmp_integrations.py",
-      "mode": "managed",
-      "sha256": "43f02c8ec432b352d93650b1256c5f8fb4cc59323abb4cecf7566adb90afc457"
-    },
-    {
-      "path": "runtime/grafana_access.py",
-      "mode": "managed",
-      "sha256": "51ff5e5aa43f9bf51e7c05d79b616fe53a4496ab40f865de05151b752bdaeafd"
-    },
-    {
-      "path": "config/admin/access-ui.js",
-      "mode": "managed",
-      "sha256": "5c2c3db0788a4f7044700d5b329028c6fe7b297394f8a9bff92db57e25c976aa"
-    },
-    {
-      "path": "docs/PERMISSOES-GRAFANA.md",
-      "mode": "managed",
-      "sha256": "4b27e3f7b8ec657364bff1d8368241eea2b0ffa1df091dea97204bebf19f3ee2"
-    },
-    {
       "path": "tests/test_grafana_access.py",
       "mode": "managed",
       "sha256": "03c1bf9b97ba1da63cb15a30b5c889ed3eccf426bf17bc6596c5a3af68be5a5c"
+    },
+    {
+      "path": "tests/test_monitor_probes.py",
+      "mode": "managed",
+      "sha256": "76d93008121fa32fae2dfc863a422ea7991a671bfc94d6457a020d90c08fb11e"
     },
     {
       "path": "tests/test_native_ui.js",
@@ -542,9 +554,65 @@
       "sha256": "116f95a211993a9bbd09bc1161cd7470ca8c538bb77dd14da7affc6d9493d128"
     },
     {
+      "path": "tests/test_plugin.js",
+      "mode": "managed",
+      "sha256": "17dd375e3b38bbebc161f7b6c948bb9a0a999ac3a90392756ec3824780c5b300"
+    },
+    {
+      "path": "tests/test_project_manager.py",
+      "mode": "managed",
+      "sha256": "9e2270a533247f1160acd90db49229b2d19ad9cb251c4d2ebd243c14db338565"
+    },
+    {
+      "path": "tests/test_proxy.py",
+      "mode": "managed",
+      "sha256": "1b9c96852f90707567dbb5ee7232ec2e4e41739d11d8594749467104b1a7f2bc"
+    },
+    {
+      "path": "tests/test_release_api.py",
+      "mode": "managed",
+      "sha256": "38135c5bcc599fea1a0be14e2cb746e5987bdcbc5fe5af46657c455ab51f70f2"
+    },
+    {
+      "path": "tests/test_release_status.py",
+      "mode": "managed",
+      "sha256": "5b5c9527d587bd9b59dfaa09e1adfc3abdebe8d6a94b7be332161a76bda63c2b"
+    },
+    {
+      "path": "tests/test_sharepoint.py",
+      "mode": "managed",
+      "sha256": "5e9b2836561944bd3e9b913da2d3e23bdfab7a54e220fad1e76aa01d18396ad0"
+    },
+    {
       "path": "tests/test_sharepoint_ui.js",
       "mode": "managed",
       "sha256": "05e626d4fb8f28e5701ac011d1fa981854ee815f8f0a1063e66f902035847b75"
+    },
+    {
+      "path": "tests/test_snmp_integrations.py",
+      "mode": "managed",
+      "sha256": "774eeb5132678e3686a22b62201d44ab1454035d1272a280b3f4de9b1b86d774"
     }
+  ],
+  "obsolete_files": [
+    "config/grafana/dashboards/dnk-clientes-integrado.json",
+    "config/grafana/dashboards/dnk-cliente-integrado.json",
+    "config/grafana/dashboards/dnk-firewalls.json",
+    "config/grafana/dashboards/dnk-firewall-detalhes.json",
+    "config/grafana/dashboards/dnk-geral.json",
+    "config/grafana/dashboards/dnk-links.json",
+    "config/grafana/dashboards/dnk-logs.json",
+    "config/grafana/dashboards/dnk-servidores.json",
+    "config/grafana/dashboards/dnk-sharepoint-detalhes.json",
+    "tests/snmp-rules.yml",
+    "config/blackbox.yml",
+    "config/snmp-v3.yml.example",
+    "runtime/health.py",
+    "compose.integracoes.yaml",
+    "compose.sharepoint.yaml",
+    "config/sharepoint/prometheus.yml",
+    "config/sharepoint/rules.yml",
+    "config/secrets/credentials.json.example",
+    "config/grafana/provisioning/dashboards/links.yml"
   ]
 }

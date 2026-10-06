@@ -19,6 +19,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import uuid
+import global_config, release_state
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -51,6 +52,11 @@ def init_db():
         CREATE TABLE IF NOT EXISTS snapshots (tenant TEXT NOT NULL, report_date TEXT NOT NULL,
           collected REAL NOT NULL, sites TEXT NOT NULL, PRIMARY KEY(tenant,report_date));
         ''')
+    # Clear legacy database copies only after the authoritative file exists.
+    credentials=global_config.read().get('sharepoint',{})
+    with LOCK,connect() as db:
+        for ident,secret in db.execute('SELECT id,secret FROM tenants').fetchall():
+            if secret and credentials.get(ident):db.execute("UPDATE tenants SET secret='' WHERE id=?",(ident,))
     os.chmod(DB_PATH, 0o600)
 
 
@@ -70,7 +76,10 @@ def number(value, name, low, high):
 
 
 def normalize(payload, current=None, old_secret=''):
-    defaults = dict(name='', Cliente='', tenant_id='', client_id='', enabled=True,
+    payload=dict(payload)
+    for old,new in (('Cliente','CLIENTE'),('Unidade','UNIDADE')):
+        if old in payload:payload[new]=payload.pop(old)
+    defaults = dict(name='', CLIENTE='', UNIDADE='Geral', tenant_id='', client_id='', enabled=True,
         interval_hours=24, capacity_gib=0, capacity_unit='GB', warning_percent=80, critical_percent=90,
         emergency_percent=95, stale_hours=96, selected_sites=[], site_aliases={}, secret_expires='')
     if current: defaults.update(current)
@@ -83,7 +92,7 @@ def normalize(payload, current=None, old_secret=''):
         amount = number(payload['capacity_value'], 'Capacidade', 0, 100000000)
         cfg['capacity_gib'] = amount * (1024 if cfg['capacity_unit'] == 'TB' else 1)
     cfg['id'] = current['id'] if current else str(uuid.uuid4())
-    for k in ('name', 'Cliente'):
+    for k in ('name', 'CLIENTE','UNIDADE'):
         cfg[k] = str(cfg[k]).strip()
         if not cfg[k] or len(cfg[k]) > 120: raise SafeError('Preencha nome e cliente (até 120 caracteres)')
     for k in ('tenant_id', 'client_id'):
@@ -113,15 +122,25 @@ def normalize(payload, current=None, old_secret=''):
     return cfg, secret
 
 
-def rows():
-    with LOCK, connect() as db: return [dict(r) for r in db.execute('SELECT * FROM tenants ORDER BY id')]
+def sync_archive():
+    import snmp_manager
+    snmp_manager.atomic(global_config.ROOT/'excluidos/sharepoint.json',[public(r) for r in rows(True) if json.loads(r['config']).get('deleted_at')])
+
+def rows(include_deleted=False):
+    with LOCK, connect() as db:result=[dict(r) for r in db.execute('SELECT * FROM tenants ORDER BY id')]
+    return [hydrate(r) for r in result if include_deleted or not json.loads(r['config']).get('deleted_at')]
+
+def hydrate(r):
+    cfg=json.loads(r['config']);cfg.setdefault('CLIENTE',cfg.pop('Cliente','SemMapeamento'));cfg.setdefault('UNIDADE',cfg.pop('Unidade','Geral'));r['config']=json.dumps(cfg)
+    r['secret']=global_config.get('sharepoint',r['id'],r.get('secret',''))
+    return r
 
 
 def get_row(tenant):
     with LOCK, connect() as db:
         r=db.execute('SELECT * FROM tenants WHERE id=?',(tenant,)).fetchone()
     if r is None: raise SafeError('Integração não encontrada')
-    return dict(r)
+    return hydrate(dict(r))
 
 
 def latest(tenant):
@@ -151,13 +170,15 @@ def save(payload, tenant=None):
                 raise SafeError('Este tenant já está cadastrado; edite a integração existente')
         changed_identity=previous and any(cfg[k]!=json.loads(previous['config'])[k] for k in ('tenant_id','client_id'))
         if changed_identity: raise SafeError('Tenant e aplicativo não podem ser trocados: crie outra integração')
+        global_config.put('sharepoint',cfg['id'],secret)
         with connect() as db:
             if previous:
                 db.execute('UPDATE tenants SET config=?,secret=?,revision=?,last_attempt=0 WHERE id=?',
-                    (json.dumps(cfg),secret,str(uuid.uuid4()),cfg['id']))
+                    (json.dumps(cfg),'',str(uuid.uuid4()),cfg['id']))
             else:
                 db.execute('INSERT INTO tenants(id,config,secret,revision) VALUES(?,?,?,?)',
-                    (cfg['id'],json.dumps(cfg),secret,str(uuid.uuid4())))
+                    (cfg['id'],json.dumps(cfg),'',str(uuid.uuid4())))
+        release_state.event('sharepoint',cfg['id'],'updated' if previous else 'created')
         return public(get_row(cfg['id']))
 
 
@@ -438,10 +459,11 @@ def metrics(now=None):
         if name not in typed: lines.extend(['# TYPE '+name+' gauge']);typed.add(name)
         lines.append(name+labels(lab)+' '+str(value))
     for row in rows():
-        cfg=json.loads(row['config']);lab=dict(Cliente=cfg['Cliente'],tenant_id=cfg['tenant_id'],
+        cfg=json.loads(row['config']);lab=dict(CLIENTE=cfg['CLIENTE'],UNIDADE=cfg['UNIDADE'],tenant_id=cfg['tenant_id'],
             integration_id=row['id'],monitor_name=cfg['name'])
         emit('enabled',int(cfg['enabled']),lab)
-        if not cfg['enabled']: continue
+        if not cfg['enabled']:
+            emit('state',5,lab);continue
         snap=latest(row['id'])
         emit('collector_success',int(bool(row['last_success']) and not row['error']),lab)
         emit('last_success_timestamp_seconds',row['last_success'],lab)
@@ -452,7 +474,7 @@ def metrics(now=None):
         if cfg['secret_expires']:
             expiry=dt.datetime.combine(dt.date.fromisoformat(cfg['secret_expires']),dt.time(),dt.timezone.utc).timestamp()
             emit('secret_expiry_timestamp_seconds',expiry,lab)
-        state=4
+        state=1
         if snap:
             all_sites=json.loads(snap['sites']);sites=selected(cfg,all_sites)
             used=sum(s['used_bytes'] for s in all_sites);cap=cfg['capacity_gib']*GIB
@@ -467,7 +489,7 @@ def metrics(now=None):
                 if used>=cap: emit('estimated_days_to_full',0,lab)
             valid=not row['error'] and now-epoch<=cfg['stale_hours']*3600 and now-row['last_success']<=cfg['stale_hours']*3600
             if valid:
-                state=5 if not cap else sum(100*used/cap>=cfg[k+'_percent'] for k in ('warning','critical','emergency'))
+                state=2 if not cap else [0,2,3,4][sum(100*used/cap>=cfg[k+'_percent'] for k in ('warning','critical','emergency'))]
             baselines={days:baseline(row['id'],snap['report_date'],days) for days in (7,30)}
             for days in (7,30):
                 delta=growth(row['id'],snap['report_date'],all_sites,days,prior=baselines[days]) if baselines[days] is not None else None
@@ -497,7 +519,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.send_header('Cache-Control','no-store');self.send_header('Content-Length',str(len(body)))
         self.end_headers();self.wfile.write(body)
     def authorized(self):
-        try: token=TOKEN_FILE.read_text().strip()
+        try: token=global_config.get('system','gateway_token','')
         except OSError: token=''
         supplied=self.headers.get('Authorization','')
         return bool(token) and hmac.compare_digest(supplied.encode(),('Bearer '+token).encode())
@@ -519,6 +541,17 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if path=='/api/tenants':
                 if self.command=='GET': return self.respond([public(r) for r in rows()])
                 if self.command=='POST': return self.respond(save(self.payload()),201)
+            if path=='/api/deleted' and self.command=='GET':return self.respond([public(r) for r in rows(True) if json.loads(r['config']).get('deleted_at')])
+            if path=='/api/history' and self.command=='GET':return self.respond(release_state.export('sharepoint'))
+            restore=re.fullmatch(r'/api/restore/([0-9a-f-]{36})',path)
+            if restore and self.command=='POST':
+                with LOCK:
+                    old=get_row(restore[1]);cfg=json.loads(old['config'])
+                    if not cfg.get('deleted_at'):raise SafeError('Integração não está excluída')
+                    if any(json.loads(r['config'])['tenant_id']==cfg['tenant_id'] for r in rows()):raise SafeError('Tenant já tem outra integração ativa')
+                    cfg.pop('deleted_at',None);cfg['enabled']=cfg.pop('previous_enabled',True)
+                    with connect() as db:db.execute('UPDATE tenants SET config=?,revision=?,last_attempt=0 WHERE id=?',(json.dumps(cfg),str(uuid.uuid4()),restore[1]))
+                sync_archive();release_state.reset(restore[1]);release_state.event('sharepoint',restore[1],'restored');return self.respond({'restored':True})
             if path=='/api/test' and self.command=='POST':
                 p=self.payload();return self.respond(enqueue(p,p.get('id'),test=True),202)
             match=re.fullmatch(r'/api/jobs/([0-9a-f]{32})',path)
@@ -528,22 +561,28 @@ class Handler(http.server.BaseHTTPRequestHandler):
             match=re.fullmatch(r'/api/tenants/([0-9a-f-]{36})(?:/(collect|sites|export))?',path)
             if match:
                 tenant,op=match.groups();get_row(tenant)
+                if json.loads(get_row(tenant)['config']).get('deleted_at') and not (op=='export' and self.command=='GET'):raise SafeError('Integração excluída; reative antes de operar')
                 if op=='collect' and self.command=='POST': return self.respond(enqueue(tenant=tenant),202)
                 if op=='sites' and self.command=='GET': return self.respond(site_details(tenant))
                 if op=='export' and self.command=='GET':
                     out=io.StringIO();writer=csv.writer(out)
-                    writer.writerow(['Data do relatório','Data da coleta','Site ID','Site','Uso bytes','Limite bytes','Arquivos'])
+                    writer.writerow(['CLIENTE','UNIDADE','Data do relatório','Data da coleta','Site ID','Site','Uso bytes','Limite bytes','Arquivos'])
                     with LOCK,connect() as db:
                         snapshots=list(db.execute('SELECT * FROM snapshots WHERE tenant=? ORDER BY report_date',(tenant,)))
                     for snap in snapshots:
                         for s in json.loads(snap['sites']):
                             # CSV formula injection: exported strings must remain text.
                             name=s['site_name'];name="'"+name if name.startswith(('=','+','-','@')) else name
-                            writer.writerow([snap['report_date'],dt.datetime.fromtimestamp(snap['collected'],dt.timezone.utc).isoformat(),s['site_id'],name,s['used_bytes'],s['quota_bytes'],s['files']])
+                            cfg=json.loads(get_row(tenant)['config'])
+                            clean=lambda value: "'"+value if value.startswith(('=','+','-','@')) else value
+                            writer.writerow([clean(cfg['CLIENTE']),clean(cfg['UNIDADE']),snap['report_date'],dt.datetime.fromtimestamp(snap['collected'],dt.timezone.utc).isoformat(),s['site_id'],name,s['used_bytes'],s['quota_bytes'],s['files']])
                     return self.respond(('\ufeff'+out.getvalue()).encode(),ctype='text/csv; charset=utf-8')
                 if not op and self.command=='PUT': return self.respond(save(self.payload(),tenant))
                 if not op and self.command=='DELETE':
-                    with LOCK,connect() as db: db.execute('DELETE FROM tenants WHERE id=?',(tenant,))
+                    with LOCK,connect() as db:
+                        cfg=json.loads(get_row(tenant)['config']);cfg.update(deleted_at=time.time(),previous_enabled=cfg['enabled'],enabled=False)
+                        db.execute('UPDATE tenants SET config=?,revision=? WHERE id=?',(json.dumps(cfg),str(uuid.uuid4()),tenant))
+                    sync_archive();release_state.event('sharepoint',tenant,'deleted')
                     return self.respond({'deleted':True,'history_preserved':True})
             self.respond({'error':'Não encontrado'},404)
         except SafeError as e: self.respond({'error':str(e)},400)
@@ -556,6 +595,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
 if __name__=='__main__':
     init_db()
-    if not TOKEN_FILE.is_file(): raise SystemExit('Token interno ausente. Execute a preparação SharePoint.')
+    if not global_config.get('system','gateway_token'): raise SystemExit('Token interno ausente. Execute a preparação SharePoint.')
     threading.Thread(target=scheduler,daemon=True).start()
     http.server.ThreadingHTTPServer(('0.0.0.0',int(os.environ.get('DNK_SP_PORT','9430'))),Handler).serve_forever()

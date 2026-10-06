@@ -1,29 +1,74 @@
 {
   "uid": "dnk-links-geral",
-  "title": "Dunker | Links — Visão geral",
+  "title": "Dunker | Links — Visão Geral por Cliente",
   "schemaVersion": 39,
-  "version": 1,
-  "style": "dark",
+  "version": 2,
+  "editable": false,
   "tags": [
     "Dunker",
-    "Links",
-    "Geral"
+    "v1.0",
+    "CLIENTE",
+    "UNIDADE"
   ],
   "timezone": "browser",
-  "editable": true,
   "refresh": "30s",
   "time": {
     "from": "now-6h",
     "to": "now"
   },
-  "timepicker": {},
-  "annotations": {
-    "list": []
-  },
+  "links": [
+    {
+      "title": "Desempenho geral",
+      "url": "/d/dnk-conformidade",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Links",
+      "url": "/d/dnk-links-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Firewalls",
+      "url": "/d/dnk-firewalls-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Servidores",
+      "url": "/d/dnk-servidores-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "SharePoint",
+      "url": "/d/dnk-sharepoint-geral",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Domínios",
+      "url": "/d/dnk-dominios",
+      "type": "link",
+      "includeVars": true,
+      "keepTime": true
+    },
+    {
+      "title": "Configurações",
+      "type": "link",
+      "url": "/a/dunker-integracoes-app/links"
+    }
+  ],
   "templating": {
     "list": [
       {
-        "name": "Cliente",
+        "name": "CLIENTE",
         "label": "Cliente",
         "type": "query",
         "datasource": {
@@ -31,68 +76,17 @@
           "uid": "dnk-prometheus"
         },
         "query": {
-          "query": "label_values(dnk:link_expected, Cliente)",
-          "refId": "VariableQuery"
+          "query": "label_values(dnk_client_category_status{category=\"links\"}, CLIENTE)",
+          "refId": "CLIENTE"
         },
-        "definition": "label_values(dnk:link_expected, Cliente)",
-        "refresh": 1,
+        "definition": "label_values(dnk_client_category_status{category=\"links\"}, CLIENTE)",
+        "refresh": 2,
         "sort": 1,
         "multi": true,
         "includeAll": true,
         "options": [],
-        "hide": 0,
         "current": {
-          "text": "All",
-          "value": "$__all"
-        },
-        "allValue": ".*"
-      },
-      {
-        "name": "Unidade",
-        "label": "Unidade",
-        "type": "query",
-        "datasource": {
-          "type": "prometheus",
-          "uid": "dnk-prometheus"
-        },
-        "query": {
-          "query": "label_values(dnk:link_expected{Cliente=~\"$Cliente\"}, Unidade)",
-          "refId": "VariableQuery"
-        },
-        "definition": "label_values(dnk:link_expected{Cliente=~\"$Cliente\"}, Unidade)",
-        "refresh": 1,
-        "sort": 1,
-        "multi": true,
-        "includeAll": true,
-        "options": [],
-        "hide": 0,
-        "current": {
-          "text": "All",
-          "value": "$__all"
-        },
-        "allValue": ".*"
-      },
-      {
-        "name": "Provedor",
-        "label": "Provedor",
-        "type": "query",
-        "datasource": {
-          "type": "prometheus",
-          "uid": "dnk-prometheus"
-        },
-        "query": {
-          "query": "label_values(dnk:link_expected{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\"}, Provedor)",
-          "refId": "VariableQuery"
-        },
-        "definition": "label_values(dnk:link_expected{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\"}, Provedor)",
-        "refresh": 1,
-        "sort": 1,
-        "multi": true,
-        "includeAll": true,
-        "options": [],
-        "hide": 0,
-        "current": {
-          "text": "All",
+          "text": "Todos",
           "value": "$__all"
         },
         "allValue": ".*"
@@ -102,389 +96,390 @@
   "panels": [
     {
       "id": 1,
-      "title": "Links • visão geral",
       "type": "text",
+      "title": "Links por cliente",
       "gridPos": {
         "x": 0,
         "y": 0,
         "w": 24,
         "h": 3
       },
-      "description": "",
       "options": {
         "mode": "markdown",
-        "content": "**Um quadrado por link. Clique para abrir o RTT, a perda e o histórico daquele link.** Os filtros começam em Todos; links do mesmo cliente continuam separados.\n\n**Verde:** OK · **Amarelo:** atenção · **Vermelho:** grave · **Roxo:** sem resposta ou degradação contínua por 10 min · **Cinza:** sem dados"
+        "content": "Clique no cartão de um cliente para abrir **todos os seus links**, com seções expansíveis e gráficos individuais.\n\n**Verde:** OK · **Cinza:** Sem Dados · **Amarelo:** Atenção · **Vermelho:** Grave · **Roxo:** Crítico · **Preto:** Pausado."
       }
     },
     {
       "id": 2,
-      "title": "TOTAL DE LINKS",
       "type": "stat",
-      "gridPos": {
-        "x": 0,
-        "y": 3,
-        "w": 4,
-        "h": 3
-      },
-      "description": "",
+      "title": "Clientes · OK",
       "datasource": {
         "type": "prometheus",
         "uid": "dnk-prometheus"
       },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "dnk-prometheus"
-          },
-          "refId": "A",
-          "expr": "count(dnk:link_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",Provedor=~\"$Provedor\"}) or vector(0)",
-          "legendFormat": "",
-          "instant": true,
-          "range": false,
-          "editorMode": "code"
-        }
-      ],
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
-          "noValue": "Sem dados",
+          "unit": "none",
           "color": {
             "mode": "fixed",
-            "fixedColor": "#8AB8FF"
+            "fixedColor": "#299c46"
           },
-          "decimals": 0
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
         },
         "overrides": []
       },
+      "targets": [
+        {
+          "expr": "count(dnk_client_category_status{category=\"links\",CLIENTE=~\"${CLIENTE:regex}\"} == 0) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "value",
         "colorMode": "value",
         "graphMode": "none",
-        "justifyMode": "center"
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
       }
     },
     {
       "id": 3,
-      "title": "OK",
       "type": "stat",
+      "title": "Clientes · Sem Dados",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
       "gridPos": {
         "x": 4,
         "y": 3,
         "w": 4,
-        "h": 3
+        "h": 4
       },
-      "description": "",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-prometheus"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "dnk-prometheus"
-          },
-          "refId": "A",
-          "expr": "count(dnk:link_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",Provedor=~\"$Provedor\"} == 0) or vector(0)",
-          "legendFormat": "",
-          "instant": true,
-          "range": false,
-          "editorMode": "code"
-        }
-      ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
-          "noValue": "Sem dados",
+          "unit": "none",
           "color": {
             "mode": "fixed",
-            "fixedColor": "#56A64B"
+            "fixedColor": "#8e959f"
           },
-          "decimals": 0
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
         },
         "overrides": []
       },
+      "targets": [
+        {
+          "expr": "count(dnk_client_category_status{category=\"links\",CLIENTE=~\"${CLIENTE:regex}\"} == 1) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "value",
         "colorMode": "value",
         "graphMode": "none",
-        "justifyMode": "center"
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
       }
     },
     {
       "id": 4,
-      "title": "ATENÇÃO",
       "type": "stat",
+      "title": "Clientes · Atenção",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
       "gridPos": {
         "x": 8,
         "y": 3,
         "w": 4,
-        "h": 3
+        "h": 4
       },
-      "description": "",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-prometheus"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "dnk-prometheus"
-          },
-          "refId": "A",
-          "expr": "count(dnk:link_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",Provedor=~\"$Provedor\"} == 2) or vector(0)",
-          "legendFormat": "",
-          "instant": true,
-          "range": false,
-          "editorMode": "code"
-        }
-      ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
-          "noValue": "Sem dados",
+          "unit": "none",
           "color": {
             "mode": "fixed",
-            "fixedColor": "#F2CC0C"
+            "fixedColor": "#f2cc0c"
           },
-          "decimals": 0
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
         },
         "overrides": []
       },
+      "targets": [
+        {
+          "expr": "count(dnk_client_category_status{category=\"links\",CLIENTE=~\"${CLIENTE:regex}\"} == 2) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "value",
         "colorMode": "value",
         "graphMode": "none",
-        "justifyMode": "center"
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
       }
     },
     {
       "id": 5,
-      "title": "GRAVE",
       "type": "stat",
+      "title": "Clientes · Grave",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
       "gridPos": {
         "x": 12,
         "y": 3,
         "w": 4,
-        "h": 3
+        "h": 4
       },
-      "description": "",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-prometheus"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "dnk-prometheus"
-          },
-          "refId": "A",
-          "expr": "count(dnk:link_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",Provedor=~\"$Provedor\"} == 3) or vector(0)",
-          "legendFormat": "",
-          "instant": true,
-          "range": false,
-          "editorMode": "code"
-        }
-      ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
-          "noValue": "Sem dados",
+          "unit": "none",
           "color": {
             "mode": "fixed",
-            "fixedColor": "#E02F44"
+            "fixedColor": "#e02f44"
           },
-          "decimals": 0
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
         },
         "overrides": []
       },
+      "targets": [
+        {
+          "expr": "count(dnk_client_category_status{category=\"links\",CLIENTE=~\"${CLIENTE:regex}\"} == 3) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "value",
         "colorMode": "value",
         "graphMode": "none",
-        "justifyMode": "center"
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
       }
     },
     {
       "id": 6,
-      "title": "CRÍTICO",
       "type": "stat",
+      "title": "Clientes · Crítico",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
       "gridPos": {
         "x": 16,
         "y": 3,
         "w": 4,
-        "h": 3
+        "h": 4
       },
-      "description": "",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-prometheus"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "dnk-prometheus"
-          },
-          "refId": "A",
-          "expr": "count(dnk:link_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",Provedor=~\"$Provedor\"} == 4) or vector(0)",
-          "legendFormat": "",
-          "instant": true,
-          "range": false,
-          "editorMode": "code"
-        }
-      ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
-          "noValue": "Sem dados",
+          "unit": "none",
           "color": {
             "mode": "fixed",
-            "fixedColor": "#A352CC"
+            "fixedColor": "#a64dd8"
           },
-          "decimals": 0
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
         },
         "overrides": []
       },
+      "targets": [
+        {
+          "expr": "count(dnk_client_category_status{category=\"links\",CLIENTE=~\"${CLIENTE:regex}\"} == 4) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "value",
         "colorMode": "value",
         "graphMode": "none",
-        "justifyMode": "center"
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
       }
     },
     {
       "id": 7,
-      "title": "SEM DADOS",
       "type": "stat",
+      "title": "Clientes · Pausado",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
       "gridPos": {
         "x": 20,
         "y": 3,
         "w": 4,
-        "h": 3
+        "h": 4
       },
-      "description": "",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "dnk-prometheus"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "dnk-prometheus"
-          },
-          "refId": "A",
-          "expr": "count(dnk:link_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",Provedor=~\"$Provedor\"} == 1) or vector(0)",
-          "legendFormat": "",
-          "instant": true,
-          "range": false,
-          "editorMode": "code"
-        }
-      ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
-          "noValue": "Sem dados",
+          "unit": "none",
           "color": {
             "mode": "fixed",
-            "fixedColor": "#8794AA"
+            "fixedColor": "#000000"
           },
-          "decimals": 0
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#299c46",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "noValue": "Sem Dados"
         },
         "overrides": []
       },
+      "targets": [
+        {
+          "expr": "count(dnk_client_category_status{category=\"links\",CLIENTE=~\"${CLIENTE:regex}\"} == 5) or vector(0)",
+          "refId": "A",
+          "legendFormat": "{{name}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
       "options": {
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "orientation": "auto",
-        "textMode": "value",
         "colorMode": "value",
         "graphMode": "none",
-        "justifyMode": "center"
+        "textMode": "value",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": true,
+          "fields": ""
+        },
+        "wideLayout": true
       }
     },
     {
       "id": 8,
-      "title": "Estado dos links",
       "type": "stat",
-      "gridPos": {
-        "x": 0,
-        "y": 6,
-        "w": 24,
-        "h": 14
-      },
-      "description": "Uma série por verificação, sem agrupamento por cliente ou por IP. Cada cartão informa cliente, nome da verificação, unidade, provedor e destino. O clique usa o identificador exclusivo do link e abre seus detalhes.",
+      "title": "Clientes — clique para abrir todos os ativos",
       "datasource": {
         "type": "prometheus",
         "uid": "dnk-prometheus"
       },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "dnk-prometheus"
-          },
-          "refId": "A",
-          "expr": "dnk:link_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",Provedor=~\"$Provedor\"}",
-          "legendFormat": "{{Cliente}} · {{link_label}}",
-          "instant": true,
-          "range": false,
-          "editorMode": "code"
-        }
-      ],
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 24,
+        "h": 9
+      },
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
-          "noValue": "SEM DADOS",
+          "unit": "none",
           "color": {
             "mode": "thresholds"
           },
@@ -492,24 +487,28 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "#56A64B",
+                "color": "#299c46",
                 "value": null
               },
               {
-                "color": "#8794AA",
+                "color": "#8e959f",
                 "value": 1
               },
               {
-                "color": "#F2CC0C",
+                "color": "#f2cc0c",
                 "value": 2
               },
               {
-                "color": "#E02F44",
+                "color": "#e02f44",
                 "value": 3
               },
               {
-                "color": "#A352CC",
+                "color": "#a64dd8",
                 "value": 4
+              },
+              {
+                "color": "#000000",
+                "value": 5
               }
             ]
           },
@@ -519,89 +518,85 @@
               "options": {
                 "0": {
                   "text": "OK",
-                  "color": "#56A64B",
+                  "color": "#299c46",
                   "index": 0
                 },
                 "1": {
-                  "text": "SEM DADOS",
-                  "color": "#8794AA",
+                  "text": "Sem Dados",
+                  "color": "#8e959f",
                   "index": 1
                 },
                 "2": {
-                  "text": "ATENÇÃO",
-                  "color": "#F2CC0C",
+                  "text": "Atenção",
+                  "color": "#f2cc0c",
                   "index": 2
                 },
                 "3": {
-                  "text": "GRAVE",
-                  "color": "#E02F44",
+                  "text": "Grave",
+                  "color": "#e02f44",
                   "index": 3
                 },
                 "4": {
-                  "text": "CRÍTICO",
-                  "color": "#A352CC",
+                  "text": "Crítico",
+                  "color": "#a64dd8",
                   "index": 4
+                },
+                "5": {
+                  "text": "Pausado",
+                  "color": "#000000",
+                  "index": 5
                 }
               }
             },
             {
               "type": "special",
               "options": {
-                "match": "null+nan",
+                "match": "null",
                 "result": {
-                  "text": "SEM DADOS",
-                  "color": "#8794AA"
+                  "text": "Sem Dados",
+                  "color": "#8e959f"
                 }
               }
             }
           ],
+          "noValue": "Sem Dados",
           "links": [
             {
-              "title": "Abrir detalhes deste link",
-              "url": "/d/dnk-links/cliente?var-Cliente=${__field.labels.Cliente:percentencode}&var-Unidade=${__field.labels.Unidade:percentencode}&var-Link=${__field.labels.link_key:percentencode}&${__url_time_range}",
-              "targetBlank": false,
-              "oneClick": true
+              "title": "Abrir detalhes do cliente",
+              "url": "/d/dnk-links-detalhes?var-CLIENTE=${__field.labels.CLIENTE:percentencode}&var-UNIDADE=All&var-asset_id=All&from=${__from}&to=${__to}",
+              "targetBlank": false
             }
           ]
         },
         "overrides": []
       },
+      "targets": [
+        {
+          "expr": "dnk_client_category_status{category=\"links\",CLIENTE=~\"${CLIENTE:regex}\"}",
+          "refId": "A",
+          "legendFormat": "{{CLIENTE}}",
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
       "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "last"
+            "lastNotNull"
           ],
-          "fields": "",
-          "values": false
+          "values": true,
+          "fields": ""
         },
-        "orientation": "auto",
-        "textMode": "value_and_name",
-        "colorMode": "background_solid",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "text": {
-          "titleSize": 12,
-          "valueSize": 28
-        },
-        "wideLayout": false
+        "wideLayout": true
       }
     }
   ],
-  "links": [
-    {
-      "title": "Visão por cliente",
-      "type": "link",
-      "url": "/d/dnk-geral/clientes?var-Cliente=All&var-Unidade=All",
-      "includeVars": false,
-      "keepTime": true,
-      "targetBlank": false
-    },
-    {
-      "title": "Cadastrar verificações",
-      "type": "link",
-      "url": "/a/dunker-integracoes-app/links",
-      "targetBlank": true
-    }
-  ],
-  "description": "Todos os links ICMP em uma única grade, com um cartão por verificação. Clique em um link para abrir somente seus detalhes no dashboard existente."
+  "description": "Um cartão por cliente, consolidando todos os ativos habilitados da categoria em todas as unidades. Qualquer anomalia altera o estado do cliente. Clique para abrir o dashboard técnico completo.",
+  "annotations": {
+    "list": []
+  }
 }
