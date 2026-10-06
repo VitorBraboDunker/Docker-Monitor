@@ -11,7 +11,7 @@ http://:8443 {
 	}
 	handle /api/v1/write {
 		basic_auth {
-			alloy_ingest  PREENCHA_HASH_BCRYPT_DA_SENHA_INGESTAO
+			alloy_ingest  {$INGEST_HASH}
 		}
 		@notpost not method POST
 		respond @notpost 405
@@ -21,7 +21,7 @@ http://:8443 {
 	}
 	handle /loki/api/v1/push {
 		basic_auth {
-			alloy_ingest  PREENCHA_HASH_BCRYPT_DA_SENHA_INGESTAO
+			alloy_ingest  {$INGEST_HASH}
 		}
 		@notpostlog not method POST
 		respond @notpostlog 405

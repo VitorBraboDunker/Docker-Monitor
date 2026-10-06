@@ -1,0 +1,101 @@
+DUNKER MONITOR - DOCKER antes
+
+
+Name             : dunker-separado-admin-1
+Image            : vitorbrabodunker/dunker-monitor-separado:1.2.0
+Status           : running
+Health           : healthy
+Project          : dunker-separado
+Service          : admin
+WorkingDirectory : C:\Users\VitorBrabodaSilvaDun\Docker\dunker-monitor
+
+Name             : dunker-separado-caddy-1
+Image            : caddy:2.11.4
+Status           : running
+Health           : 
+Project          : dunker-separado
+Service          : caddy
+WorkingDirectory : C:\Users\VitorBrabodaSilvaDun\Docker\dunker-monitor
+
+Name             : dunker-separado-grafana-1
+Image            : grafana/grafana:13.2.2
+Status           : running
+Health           : 
+Project          : dunker-separado
+Service          : grafana
+WorkingDirectory : C:\Users\VitorBrabodaSilvaDun\Docker\dunker-monitor
+
+Name             : dunker-separado-ping-1
+Image            : vitorbrabodunker/dunker-monitor-separado:1.2.0
+Status           : running
+Health           : healthy
+Project          : dunker-separado
+Service          : ping
+WorkingDirectory : C:\Users\VitorBrabodaSilvaDun\Docker\dunker-monitor
+
+Name             : dunker-separado-sharepoint-prometheus-1
+Image            : prom/prometheus:v3.13.3
+Status           : running
+Health           : 
+Project          : dunker-separado
+Service          : sharepoint-prometheus
+WorkingDirectory : C:\Users\VitorBrabodaSilvaDun\Docker\dunker-monitor
+
+Name             : dunker-separado-sharepoint-1
+Image            : vitorbrabodunker/dunker-monitor-separado:1.2.0
+Status           : running
+Health           : healthy
+Project          : dunker-separado
+Service          : sharepoint
+WorkingDirectory : C:\Users\VitorBrabodaSilvaDun\Docker\dunker-monitor
+
+Name             : dunker-separado-snmp-1
+Image            : prom/snmp-exporter:v0.30.1
+Status           : running
+Health           : 
+Project          : dunker-separado
+Service          : snmp
+WorkingDirectory : C:\Users\VitorBrabodaSilvaDun\Docker\dunker-monitor
+
+Name             : dunker-separado-alloy-1
+Image            : grafana/alloy:v1.20.1
+Status           : running
+Health           : 
+Project          : dunker-separado
+Service          : alloy
+WorkingDirectory : C:\Users\VitorBrabodaSilvaDun\Docker\dunker-monitor
+
+Name             : dunker-separado-loki-1
+Image            : grafana/loki:3.7.8
+Status           : running
+Health           : 
+Project          : dunker-separado
+Service          : loki
+WorkingDirectory : C:\Users\VitorBrabodaSilvaDun\Docker\dunker-monitor
+
+Name             : dunker-separado-prometheus-1
+Image            : prom/prometheus:v3.13.3
+Status           : running
+Health           : 
+Project          : dunker-separado
+Service          : prometheus
+WorkingDirectory : C:\Users\VitorBrabodaSilvaDun\Docker\dunker-monitor
+
+Name             : dunker-separado-alertmanager-1
+Image            : prom/alertmanager:v0.34.1
+Status           : running
+Health           : 
+Project          : dunker-separado
+Service          : alertmanager
+WorkingDirectory : C:\Users\VitorBrabodaSilvaDun\Docker\dunker-monitor
+
+Name             : dunker-separado-blackbox-1
+Image            : prom/blackbox-exporter:v0.28.0
+Status           : running
+Health           : 
+Project          : dunker-separado
+Service          : blackbox
+WorkingDirectory : C:\Users\VitorBrabodaSilvaDun\Docker\dunker-monitor
+
+
+

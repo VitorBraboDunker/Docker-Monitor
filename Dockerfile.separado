@@ -1,0 +1,4 @@
+FROM python:3.13-slim-bookworm
+COPY runtime /opt/dunker/
+ENV PYTHONUNBUFFERED=1
+ENTRYPOINT ["python3", "/opt/dunker/ping_exporter.py"]

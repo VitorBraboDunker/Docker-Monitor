@@ -77,6 +77,14 @@ def render_metrics():
  try:rows=[r for r in inventory() if r.get('enabled',True)]
  except (OSError,ValueError):rows=[]
  out=['# TYPE dnk_target_expected gauge']+['dnk_target_expected'+label_string(r)+' 1' for r in rows]
+ for r in rows:
+  if r.get('managed_snmp'):
+   out.append('dnk_snmp_device_info'+label_string(r)+' 1')
+   for iface in r.get('interfaces',[]):
+    labels=label_string(r)[:-1]+',ifIndex='+json.dumps(iface['ifIndex'])+'}'
+    out.append('dnk_snmp_interface_selected'+labels+' 1')
+    for direction in ('download','upload'):
+     out.append('dnk_snmp_contracted_'+direction+'_bits'+labels+' '+str(float(iface.get(direction+'_mbps',0))*1000000))
  out+=['# TYPE dnk_check_config_interval_seconds gauge']+['dnk_check_config_interval_seconds'+label_string(r)+' '+str(r.get('interval_seconds',30)) for r in rows if r.get('tipo') in ('icmp','http','tcp','dns')]
  out+=['# TYPE dnk_check_config_stale_seconds gauge']+['dnk_check_config_stale_seconds'+label_string(r)+' '+str(2*float(r.get('interval_seconds',30))+max(float(r.get('timeout_seconds',5)),float(r.get('packet_interval_seconds',1)))*int(r.get('packet_count',5))+30) for r in rows if r.get('tipo') in ('icmp','http','tcp','dns')]
  config_fields={'interval_seconds':'interval_seconds','timeout_seconds':'timeout_seconds','packet_count':'packet_count','packet_interval_seconds':'packet_interval_seconds','latency_warning_ms':'latency_warning_milliseconds','loss_warning_percent':'loss_warning_percent'}

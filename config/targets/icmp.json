@@ -1,26 +1,242 @@
 [
   {
     "targets": [
-      "127.0.0.1"
+      "186.250.55.150"
     ],
     "labels": {
-      "Cliente": "DunkerLAB",
-      "Unidade": "VM",
-      "Provedor": "Autoteste",
-      "monitor_id": "d251f506-3af6-4b83-abb4-40911ae96c8b",
-      "monitor_name": "127.0.0.1"
+      "Cliente": "Alphamarktec",
+      "Unidade": "Sao Paulo",
+      "Provedor": "Redfix",
+      "monitor_id": "aa13e63b-9532-49a5-bfe2-1f8635b02a78",
+      "monitor_name": "Alphamarktec - SP - Redfix"
     }
   },
   {
     "targets": [
-      "1.1.1.1"
+      "201.23.111.50"
     ],
     "labels": {
-      "Cliente": "DunkerIT",
-      "Unidade": "Matriz",
-      "Provedor": "Cloudflare",
-      "monitor_id": "8ed93c00-202a-489d-b8da-76a34f9db292",
-      "monitor_name": "1.1.1.1"
+      "Cliente": "Alphamarktec",
+      "Unidade": "Sao Paulo",
+      "Provedor": "NeoVia",
+      "monitor_id": "23ba10bd-0814-4b94-a930-ded0e6803858",
+      "monitor_name": "Alphamarktec - SP - NeoVia"
+    }
+  },
+  {
+    "targets": [
+      "138.121.138.38"
+    ],
+    "labels": {
+      "Cliente": "Alphamarktec",
+      "Unidade": "Espirito Santo",
+      "Provedor": "Conectja Telecom",
+      "monitor_id": "afd1047c-496c-46c0-bd51-0dd3db34daba",
+      "monitor_name": "Alphamarktec - ES - Conectja Telecom"
+    }
+  },
+  {
+    "targets": [
+      "189.5.232.43"
+    ],
+    "labels": {
+      "Cliente": "Onkos",
+      "Unidade": "Sao Paulo",
+      "Provedor": "Claro",
+      "monitor_id": "4f716eb6-b5e3-4bd9-a57d-ca38a931a8bb",
+      "monitor_name": "Onkos - SP - Claro"
+    }
+  },
+  {
+    "targets": [
+      "179.111.247.66"
+    ],
+    "labels": {
+      "Cliente": "Onkos",
+      "Unidade": "Sao Paulo",
+      "Provedor": "Vivo",
+      "monitor_id": "60d609e5-c0f7-4542-a99a-dd0b8fbaaf72",
+      "monitor_name": "Onkos - SP - Vivo"
+    }
+  },
+  {
+    "targets": [
+      "158.115.130.65"
+    ],
+    "labels": {
+      "Cliente": "Syntec do Brasil",
+      "Unidade": "EUA",
+      "Provedor": "Meraki LLC",
+      "monitor_id": "ef59683a-4229-48de-8855-a0ff03312c26",
+      "monitor_name": "Syntec do Brasil - Meraki LLC"
+    }
+  },
+  {
+    "targets": [
+      "187.120.13.122"
+    ],
+    "labels": {
+      "Cliente": "Syntec do Brasil",
+      "Unidade": "Sao Paulo",
+      "Provedor": "SAMM TECNOLOGIA",
+      "monitor_id": "2c355c58-6d3d-4269-9bac-7c1ec0b1a77a",
+      "monitor_name": "Syntec do Brasil - SP -  SAMM TECNOLOGIA"
+    }
+  },
+  {
+    "targets": [
+      "179.108.82.234"
+    ],
+    "labels": {
+      "Cliente": "Labyes",
+      "Unidade": "Sao Paulo",
+      "Provedor": "Net Turbo Telecom",
+      "monitor_id": "d8b41bcb-4450-4e78-b5d4-f054db21965d",
+      "monitor_name": "Labyes - SP - Net Turbo Telecom"
+    }
+  },
+  {
+    "targets": [
+      "177.124.20.138"
+    ],
+    "labels": {
+      "Cliente": "Zittei Contabil",
+      "Unidade": "Minas Gerais",
+      "Provedor": "Alt Informatica Ltda",
+      "monitor_id": "eb756922-b660-4604-a827-b8924572c2db",
+      "monitor_name": "Zittei Contabil - MG - Alt Informatica Ltda"
+    }
+  },
+  {
+    "targets": [
+      "177.103.219.86"
+    ],
+    "labels": {
+      "Cliente": "Zittei Contabil",
+      "Unidade": "São Paulo",
+      "Provedor": "Vivo",
+      "monitor_id": "dd910c7f-c786-442b-8327-86b0eac5c0c8",
+      "monitor_name": "Zittei Contabil - SP - Vivo"
+    }
+  },
+  {
+    "targets": [
+      "201.6.251.240"
+    ],
+    "labels": {
+      "Cliente": "Zittei Contabil",
+      "Unidade": "Sao Paulo",
+      "Provedor": "Claro",
+      "monitor_id": "c6b62529-93b2-4358-98fb-afab8a7346dd",
+      "monitor_name": "Zittei Contabil - SP - Claro"
+    }
+  },
+  {
+    "targets": [
+      "189.1.162.119"
+    ],
+    "labels": {
+      "Cliente": "Stance",
+      "Unidade": "Sao Paulo",
+      "Provedor": "HOSTLOCATION LTDA",
+      "monitor_id": "05862d83-b832-455d-a56c-654131c4609f",
+      "monitor_name": "Stance - SP - HOSTLOCATION LTDA"
+    }
+  },
+  {
+    "targets": [
+      "187.63.151.50"
+    ],
+    "labels": {
+      "Cliente": "Copernico",
+      "Unidade": "Paraná",
+      "Provedor": "G4 Conectividade",
+      "monitor_id": "dfe86e91-1ecb-44d4-b0e8-81a7ec4cea3a",
+      "monitor_name": "Copernico - PR - G4 Conectividade"
+    }
+  },
+  {
+    "targets": [
+      "201.48.242.13"
+    ],
+    "labels": {
+      "Cliente": "Copernico",
+      "Unidade": "Parana",
+      "Provedor": "G4 Conectividade",
+      "monitor_id": "e9477b89-ce4d-4185-b18c-122d63b7b1a8",
+      "monitor_name": "Copernico - PR - G4 Conectividade"
+    }
+  },
+  {
+    "targets": [
+      "201.6.109.13"
+    ],
+    "labels": {
+      "Cliente": "Tonini",
+      "Unidade": "Sao Paulo",
+      "Provedor": "Claro",
+      "monitor_id": "e6adbdcb-d8e6-4663-8286-edceb46fc8cf",
+      "monitor_name": "Tonini - SP - Claro"
+    }
+  },
+  {
+    "targets": [
+      "187.120.14.190"
+    ],
+    "labels": {
+      "Cliente": "Tonini",
+      "Unidade": "Sao Paulo",
+      "Provedor": "SAMM TECNOLOGA",
+      "monitor_id": "dbd16260-4fe8-4f82-b54a-692d735389a3",
+      "monitor_name": "Tonini - SP - SAMM TECNOLOG"
+    }
+  },
+  {
+    "targets": [
+      "191.9.120.5"
+    ],
+    "labels": {
+      "Cliente": "Tonini",
+      "Unidade": "Sao Paulo",
+      "Provedor": "Vivo",
+      "monitor_id": "838ea2ae-2b3d-460c-a641-3d02c6c8817b",
+      "monitor_name": "Tonini - SP - Vivo"
+    }
+  },
+  {
+    "targets": [
+      "177.92.120.138"
+    ],
+    "labels": {
+      "Cliente": "Flow Executive Finders",
+      "Unidade": "Sao Paulo",
+      "Provedor": "Mundivox",
+      "monitor_id": "88e81b2a-1767-45b6-b8c9-cb8c1507688e",
+      "monitor_name": "Flow Executive Finders - SP - Mundivox"
+    }
+  },
+  {
+    "targets": [
+      "189.112.41.205"
+    ],
+    "labels": {
+      "Cliente": "Flow Executive Finders",
+      "Unidade": "Sao Paulo",
+      "Provedor": "Algar Telecom",
+      "monitor_id": "c930032d-8f60-4b03-85b9-da80e59519fa",
+      "monitor_name": "Flow Executive Finders - SP - Mundivox"
+    }
+  },
+  {
+    "targets": [
+      "8.8.8.8"
+    ],
+    "labels": {
+      "Cliente": "Vitor",
+      "Unidade": "SP",
+      "Provedor": "Claro",
+      "monitor_id": "2b16eee8-e718-4b69-84ee-d89ddf833927",
+      "monitor_name": "TESTE VITOR"
     }
   }
 ]

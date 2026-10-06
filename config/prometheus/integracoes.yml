@@ -1,0 +1,76 @@
+groups:
+- name: dunker-snmp-integracoes
+  rules:
+  - record: dnk:snmp_expected
+    expr: max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (dnk_snmp_device_info)
+  - record: dnk:snmp_up
+    expr: max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (up{job="snmp",managed_by="dnk"} and (time() - timestamp(up{job="snmp",managed_by="dnk"})
+      < 180))
+  - record: dnk:snmp_cpu_percent
+    expr: max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (sonicCurrentCPUUtil{job="snmp_health"} or dnkCustomCPUPercent{job="snmp_health"})
+      or avg by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name) (hrProcessorLoad{job="snmp_health"})
+  - record: dnk:snmp_ram_percent
+    expr: max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (sonicCurrentRAMUtil{job="snmp_health"} or dnkCustomRAMPercent{job="snmp_health"})
+      or max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name) (100
+      * hrStorageUsed{job="snmp_health",hrStorageDescr=~"(?i).*ram.*|.*main memory.*"}
+      / hrStorageSize{job="snmp_health",hrStorageDescr=~"(?i).*ram.*|.*main memory.*"})
+  - record: dnk:snmp_in_bps
+    expr: (rate(ifHCInOctets{job="snmp",managed_by="dnk"}[5m]) * 8) or on (monitor_id,ifIndex)
+      (rate(ifInOctets{job="snmp",managed_by="dnk"}[5m]) * 8)
+  - record: dnk:snmp_out_bps
+    expr: (rate(ifHCOutOctets{job="snmp",managed_by="dnk"}[5m]) * 8) or on (monitor_id,ifIndex)
+      (rate(ifOutOctets{job="snmp",managed_by="dnk"}[5m]) * 8)
+  - record: dnk:snmp_in_selected_bps
+    expr: (dnk:snmp_in_bps and on (monitor_id,ifIndex) dnk_snmp_interface_selected)
+      or (dnk:snmp_in_bps unless on (monitor_id) dnk_snmp_interface_selected)
+  - record: dnk:snmp_out_selected_bps
+    expr: (dnk:snmp_out_bps and on (monitor_id,ifIndex) dnk_snmp_interface_selected)
+      or (dnk:snmp_out_bps unless on (monitor_id) dnk_snmp_interface_selected)
+  - record: dnk:snmp_download_utilization_percent
+    expr: 100 * dnk:snmp_in_selected_bps / on (monitor_id,ifIndex) group_left() (dnk_snmp_contracted_download_bits
+      > 0)
+  - record: dnk:snmp_upload_utilization_percent
+    expr: 100 * dnk:snmp_out_selected_bps / on (monitor_id,ifIndex) group_left() (dnk_snmp_contracted_upload_bits
+      > 0)
+  - record: dnk:firewallcpu_state
+    expr: max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      ((2 * (avg_over_time(dnk:snmp_cpu_percent[5m]) > bool 85) + (avg_over_time(dnk:snmp_cpu_percent[5m])
+      > bool 95)) and on (monitor_id) (up{job="snmp_health"} == 1))
+  - record: dnk:firewallmemory_state
+    expr: max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      ((2 * (avg_over_time(dnk:snmp_ram_percent[5m]) > bool 90) + (avg_over_time(dnk:snmp_ram_percent[5m])
+      > bool 97)) and on (monitor_id) (up{job="snmp_health"} == 1))
+  - record: dnk:firewallwan_state
+    expr: max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (3 * (ifOperStatus{job="snmp",managed_by="dnk"} != bool 1) and on (monitor_id,ifIndex)
+      dnk_snmp_interface_selected)
+  - record: dnk:firewallavailability_state
+    expr: 4 * (1 - dnk:snmp_up)
+  - record: dnk:firewall_state
+    expr: (max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      ({__name__=~"dnk:firewall(availability|cpu|memory|wan)_state"}) and on (monitor_id)
+      dnk:snmp_expected) or on (monitor_id) dnk:snmp_expected
+  - record: dnk:client_component_state
+    expr: max by (Cliente,Unidade) (dnk:link_state or dnk:firewall_state)
+- name: dunker-snmp-alertas
+  rules:
+  - alert: FirewallCPUAlta
+    expr: dnk:snmp_cpu_percent > 85 and on (monitor_id) (up{job="snmp_health"} ==
+      1)
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'CPU alta: {{ $labels.monitor_name }}'
+  - alert: FirewallRAMAlta
+    expr: dnk:snmp_ram_percent > 90 and on (monitor_id) (up{job="snmp_health"} ==
+      1)
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'RAM alta: {{ $labels.monitor_name }}'

@@ -76,3 +76,8 @@ temp/
 !*.example
 !**/*.example
 !.env.example
+config/integracoes/private/
+config/sharepoint/private/
+.dnk-install-state.json
+config/secrets/ingest_hash
+config/access/private/

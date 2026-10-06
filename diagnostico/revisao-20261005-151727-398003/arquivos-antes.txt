@@ -1,0 +1,119 @@
+DUNKER MONITOR — REVISÃO ANTES
+Pacote: 1.4.0
+Pasta: /projeto
+Serviços definidos: caddy, grafana, prometheus, alertmanager, blackbox, snmp, ping, loki, alloy, admin, sharepoint, sharepoint-prometheus
+Arquivos ausentes: 5
+Arquivos diferentes: 37
+
+Inventário (somente contagens): {"verificacoes": 19, "equipamentos_snmp": 0, "integracoes_sharepoint": 0}
+Credenciais: somente presença dos arquivos, sem valores.
+
+Detalhes de arquivos:
+igual ao pacote | managed | .dockerignore
+existente / diferente | managed | .env.example
+existente / diferente | managed | .gitignore
+existente / diferente | managed | ATUALIZAR-PROJETO.ps1
+igual ao pacote | managed | Dockerfile.separado
+igual ao pacote | managed | INICIAR-PROJETO.ps1
+igual ao pacote | managed | PARAR-PROJETO.ps1
+existente / diferente | managed | README.md
+igual ao pacote | managed | VERIFICAR-PROJETO.ps1
+existente / diferente | managed | VERSION
+existente / diferente | managed | atualizar-projeto.sh
+existente / diferente | managed | compose.separado.yaml
+igual ao pacote | managed | config/admin/index.html
+existente / diferente | managed | config/admin/sharepoint-ui.js
+igual ao pacote | managed | config/admin/sharepoint.css
+igual ao pacote | managed | config/admin/sharepoint.html
+igual ao pacote | seed | config/alertmanager.yml
+igual ao pacote | seed | config/alloy/central.alloy
+igual ao pacote | seed | config/blackbox.yml
+igual ao pacote | managed | config/caddy/Caddyfile.example
+existente / diferente | managed | config/grafana/dashboards/dnk-cliente-integrado.json
+existente / diferente | managed | config/grafana/dashboards/dnk-clientes-integrado.json
+existente / diferente | managed | config/grafana/dashboards/dnk-firewall-detalhes.json
+existente / diferente | managed | config/grafana/dashboards/dnk-firewalls.json
+existente / diferente | managed | config/grafana/dashboards/dnk-geral.json
+existente / diferente | managed | config/grafana/dashboards/dnk-links-geral.json
+existente / diferente | managed | config/grafana/dashboards/dnk-links.json
+existente / diferente | managed | config/grafana/dashboards/dnk-logs.json
+existente / diferente | managed | config/grafana/dashboards/dnk-servidores.json
+existente / diferente | managed | config/grafana/dashboards/dnk-sharepoint-detalhes.json
+existente / diferente | managed | config/grafana/dashboards/dnk-sharepoint-geral.json
+igual ao pacote | managed | config/grafana/plugins/dunker-integracoes-app/img/logo.svg
+existente / diferente | managed | config/grafana/plugins/dunker-integracoes-app/module.js
+existente / diferente | managed | config/grafana/plugins/dunker-integracoes-app/plugin.json
+igual ao pacote | seed | config/grafana/provisioning/dashboards/dashboards.yml
+igual ao pacote | seed | config/grafana/provisioning/datasources/datasources.yml
+igual ao pacote | managed | config/grafana/provisioning/datasources/sharepoint.yml
+igual ao pacote | managed | config/integracoes/modules.json
+igual ao pacote | managed | config/integracoes/snmp-managed.example
+existente / diferente | seed | config/inventory.json
+igual ao pacote | seed | config/loki-separado.yml
+igual ao pacote | managed | config/prometheus/rules.yml
+igual ao pacote | managed | config/prometheus/separado.yml
+igual ao pacote | managed | config/secrets/credentials.json.example
+igual ao pacote | managed | config/sharepoint/prometheus.yml
+igual ao pacote | managed | config/sharepoint/rules.yml
+igual ao pacote | managed | config/snmp-v3.yml.example
+igual ao pacote | managed | config/snmp.yml.example
+igual ao pacote | seed | config/targets/http.json
+existente / diferente | seed | config/targets/icmp.json
+existente / diferente | seed | config/targets/inventory.json
+existente / diferente | seed | config/targets/snmp.json
+igual ao pacote | seed | config/targets/tcp.json
+existente / diferente | managed | docs/INTEGRACOES-SNMP.md
+existente / diferente | managed | docs/SHAREPOINT.md
+existente / diferente | managed | docs/VALIDACAO.md
+igual ao pacote | managed | iniciar-projeto.sh
+igual ao pacote | managed | inventario-exemplo.csv
+existente / diferente | seed | inventario.csv
+igual ao pacote | managed | parar-projeto.sh
+existente / diferente | managed | runtime/admin_monitor.py
+igual ao pacote | managed | runtime/health.py
+igual ao pacote | managed | runtime/monitor_probes.py
+igual ao pacote | managed | runtime/ping_exporter.py
+existente / diferente | managed | runtime/sharepoint_activate.py
+igual ao pacote | managed | runtime/sharepoint_collector.py
+igual ao pacote | managed | runtime/sharepoint_proxy.py
+igual ao pacote | managed | runtime/snmp_manager.py
+existente / diferente | managed | scripts/build-plugin.py
+igual ao pacote | managed | scripts/docker_audit.py
+igual ao pacote | managed | scripts/gerar-agente.py
+igual ao pacote | managed | scripts/importar-inventario.py
+igual ao pacote | managed | scripts/instalar-docker-ubuntu.sh
+existente / diferente | managed | scripts/project_manager.py
+igual ao pacote | managed | scripts/vendor/PyYAML-LICENSE.txt
+igual ao pacote | managed | scripts/vendor/yaml/__init__.py
+igual ao pacote | managed | scripts/vendor/yaml/composer.py
+igual ao pacote | managed | scripts/vendor/yaml/constructor.py
+igual ao pacote | managed | scripts/vendor/yaml/cyaml.py
+igual ao pacote | managed | scripts/vendor/yaml/dumper.py
+igual ao pacote | managed | scripts/vendor/yaml/emitter.py
+igual ao pacote | managed | scripts/vendor/yaml/error.py
+igual ao pacote | managed | scripts/vendor/yaml/events.py
+igual ao pacote | managed | scripts/vendor/yaml/loader.py
+igual ao pacote | managed | scripts/vendor/yaml/nodes.py
+igual ao pacote | managed | scripts/vendor/yaml/parser.py
+igual ao pacote | managed | scripts/vendor/yaml/reader.py
+igual ao pacote | managed | scripts/vendor/yaml/representer.py
+igual ao pacote | managed | scripts/vendor/yaml/resolver.py
+igual ao pacote | managed | scripts/vendor/yaml/scanner.py
+igual ao pacote | managed | scripts/vendor/yaml/serializer.py
+igual ao pacote | managed | scripts/vendor/yaml/tokens.py
+igual ao pacote | managed | scripts/windows-common.ps1
+igual ao pacote | managed | tests/snmp-rules.yml
+igual ao pacote | managed | tests/snmp_fixture.py
+existente / diferente | managed | tests/test_admin_monitor.py
+igual ao pacote | managed | tests/test_docker_audit.py
+igual ao pacote | managed | tests/test_monitor_probes.py
+existente / diferente | managed | tests/test_plugin.js
+existente / diferente | managed | tests/test_project_manager.py
+igual ao pacote | managed | tests/test_proxy.py
+igual ao pacote | managed | tests/test_sharepoint.py
+existente / diferente | managed | tests/test_snmp_integrations.py
+ausente | managed | runtime/grafana_access.py
+ausente | managed | config/admin/access-ui.js
+ausente | managed | docs/PERMISSOES-GRAFANA.md
+ausente | managed | tests/test_grafana_access.py
+ausente | managed | tests/test_native_ui.js

@@ -23,6 +23,7 @@ services:
       XDG_DATA_HOME: /data
       XDG_CONFIG_HOME: /data/caddy-config
       ADMIN_UPSTREAM: admin:8080
+      INGEST_HASH: ${INGEST_HASH:-}
     ports:
     - ${ACCESS_BIND:-0.0.0.0}:${ACCESS_PORT:-8443}:8443
     volumes:
@@ -61,7 +62,9 @@ services:
       LOKI_URL: http://loki:3100
       AM_URL: http://alertmanager:9093
       GF_SERVER_ENFORCE_DOMAIN: 'false'
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: dunker-integracoes-app
     volumes:
+    - ./config/grafana/plugins/dunker-integracoes-app:/var/lib/grafana/plugins/dunker-integracoes-app:ro
     - ./config:/etc/dunker:ro
     - grafana_data:/var/lib/grafana
     depends_on:
@@ -125,7 +128,7 @@ services:
     cap_drop:
     - ALL
     user: '0'
-    volumes: &id001
+    volumes:
     - ./config:/etc/dunker:ro
   snmp:
     restart: unless-stopped
@@ -139,10 +142,15 @@ services:
     image: prom/snmp-exporter:v0.30.1
     command:
     - --config.file=/etc/dunker/snmp.yml
-    volumes: *id001
+    - --config.file=/etc/dunker/integracoes/private/snmp-managed.yml
+    volumes:
+    - ./config:/etc/dunker:ro
+    user: '0'
+    cap_drop:
+    - ALL
   ping:
     restart: unless-stopped
-    logging: &id002
+    logging:
       driver: json-file
       options:
         max-size: 10m
@@ -152,12 +160,14 @@ services:
     image: vitorbrabodunker/dunker-monitor-separado:1.2.0
     build:
       context: .
-      dockerfile: Dockerfile.ping
+      dockerfile: Dockerfile.separado
     cap_drop:
     - ALL
     cap_add:
     - NET_RAW
-    volumes: *id001
+    volumes:
+    - ./runtime:/opt/dunker:ro
+    - ./config:/etc/dunker:ro
     healthcheck:
       test:
       - CMD
@@ -216,7 +226,7 @@ services:
     image: vitorbrabodunker/dunker-monitor-separado:1.2.0
     build:
       context: .
-      dockerfile: Dockerfile.ping
+      dockerfile: Dockerfile.separado
     entrypoint:
     - python3
     - /opt/dunker/admin_monitor.py
@@ -225,16 +235,33 @@ services:
       DNK_ADMIN_DATA: /etc/dunker/targets
       ADMIN_PASSWORD_FILE: /etc/dunker/secrets/grafana_admin_password
       BLACKBOX_URL: http://blackbox:9115
+      DNK_ADMIN_PAGE: /etc/dunker/admin/index.html
+      DNK_SNMP_PRIVATE: /etc/dunker/integracoes/private
+      SNMP_URL: http://snmp:9116
+      DNK_SP_PRIVATE: /etc/dunker/sharepoint/private
+      DNK_SP_URL: http://sharepoint:9430
+      DNK_GRAFANA_URL: http://grafana:3000
+      DNK_GRAFANA_ORG_ID: ${GRAFANA_ORG_ID:-1}
+      DNK_ACCESS_FILE: /etc/dunker/access/private/policy.json
     volumes:
+    - ./runtime:/opt/dunker:ro
+    - ./config/access/private:/etc/dunker/access/private:rw
+    - ./config/sharepoint/private:/etc/dunker/sharepoint/private:ro
     - ./config:/etc/dunker:ro
     - ./config/targets:/etc/dunker/targets:rw
+    - ./config/integracoes/private:/etc/dunker/integracoes/private:rw
     depends_on:
     - blackbox
+    - grafana
     security_opt:
     - no-new-privileges:true
     cap_drop:
     - ALL
-    logging: *id002
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
     cap_add:
     - NET_RAW
     healthcheck:
@@ -246,6 +273,60 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+  sharepoint:
+    image: vitorbrabodunker/dunker-monitor-separado:1.2.0
+    entrypoint:
+    - python3
+    - /opt/dunker/sharepoint_collector.py
+    restart: unless-stopped
+    environment:
+      DNK_SP_PRIVATE: /data
+      DNK_SP_PORT: '9430'
+    volumes:
+    - ./runtime/sharepoint_collector.py:/opt/dunker/sharepoint_collector.py:ro
+    - ./config/sharepoint/private:/data:rw
+    cap_drop:
+    - ALL
+    security_opt:
+    - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
+    healthcheck:
+      test:
+      - CMD
+      - python3
+      - -c
+      - import urllib.request; urllib.request.urlopen('http://127.0.0.1:9430/healthz')
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  sharepoint-prometheus:
+    image: prom/prometheus:v3.13.3
+    restart: unless-stopped
+    command:
+    - --config.file=/etc/dunker/sharepoint/prometheus.yml
+    - --storage.tsdb.path=/prometheus
+    - --storage.tsdb.retention.time=365d
+    - --storage.tsdb.retention.size=2GB
+    volumes:
+    - ./config/sharepoint/prometheus.yml:/etc/dunker/sharepoint/prometheus.yml:ro
+    - ./config/sharepoint/rules.yml:/etc/dunker/sharepoint/rules.yml:ro
+    - sharepoint_prometheus_data:/prometheus
+    depends_on:
+    - sharepoint
+    - alertmanager
+    cap_drop:
+    - ALL
+    security_opt:
+    - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: '3'
 volumes:
   caddy_data: {}
   grafana_data: {}
@@ -253,3 +334,4 @@ volumes:
   alertmanager_data: {}
   loki_data: {}
   alloy_data: {}
+  sharepoint_prometheus_data: {}

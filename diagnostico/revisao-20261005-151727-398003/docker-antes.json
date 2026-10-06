@@ -1,0 +1,416 @@
+[
+    {
+        "Name":  "dunker-separado-caddy-1",
+        "Image":  "caddy:2.11.4",
+        "Status":  "running",
+        "Health":  null,
+        "Project":  "dunker-separado",
+        "Service":  "caddy",
+        "WorkingDirectory":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor",
+        "ComposeFiles":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\compose.separado.yaml",
+        "Mounts":  [
+                       {
+                           "Type":  "volume",
+                           "Source":  "/var/lib/docker/volumes/dunker-separado_caddy_data/_data",
+                           "Destination":  "/data",
+                           "VolumeName":  "dunker-separado_caddy_data",
+                           "ReadWrite":  true
+                       },
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\config",
+                           "Destination":  "/etc/dunker",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       }
+                   ],
+        "Ports":  {
+                      "8443/tcp":  [
+                                       {
+                                           "HostIp":  "0.0.0.0",
+                                           "HostPort":  "8443"
+                                       }
+                                   ]
+                  }
+    },
+    {
+        "Name":  "dunker-separado-admin-1",
+        "Image":  "vitorbrabodunker/dunker-monitor-separado:1.2.0",
+        "Status":  "running",
+        "Health":  "healthy",
+        "Project":  "dunker-separado",
+        "Service":  "admin",
+        "WorkingDirectory":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor",
+        "ComposeFiles":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\compose.separado.yaml",
+        "Mounts":  [
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\config",
+                           "Destination":  "/etc/dunker",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       },
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\runtime",
+                           "Destination":  "/opt/dunker",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       },
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\config\\targets",
+                           "Destination":  "/etc/dunker/targets",
+                           "VolumeName":  null,
+                           "ReadWrite":  true
+                       },
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\config\\integracoes\\private",
+                           "Destination":  "/etc/dunker/integracoes/private",
+                           "VolumeName":  null,
+                           "ReadWrite":  true
+                       },
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\config\\sharepoint\\private",
+                           "Destination":  "/etc/dunker/sharepoint/private",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       }
+                   ],
+        "Ports":  {
+                      "9427/tcp":  null
+                  }
+    },
+    {
+        "Name":  "dunker-separado-grafana-1",
+        "Image":  "grafana/grafana:13.2.2",
+        "Status":  "running",
+        "Health":  null,
+        "Project":  "dunker-separado",
+        "Service":  "grafana",
+        "WorkingDirectory":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor",
+        "ComposeFiles":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\compose.separado.yaml",
+        "Mounts":  [
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\config",
+                           "Destination":  "/etc/dunker",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       },
+                       {
+                           "Type":  "volume",
+                           "Source":  "/var/lib/docker/volumes/dunker-separado_grafana_data/_data",
+                           "Destination":  "/var/lib/grafana",
+                           "VolumeName":  "dunker-separado_grafana_data",
+                           "ReadWrite":  true
+                       },
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\config\\grafana\\plugins\\dunker-integracoes-app",
+                           "Destination":  "/var/lib/grafana/plugins/dunker-integracoes-app",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       }
+                   ],
+        "Ports":  {
+                      "3000/tcp":  [
+                                       {
+                                           "HostIp":  "127.0.0.1",
+                                           "HostPort":  "3000"
+                                       }
+                                   ]
+                  }
+    },
+    {
+        "Name":  "dunker-separado-ping-1",
+        "Image":  "vitorbrabodunker/dunker-monitor-separado:1.2.0",
+        "Status":  "running",
+        "Health":  "healthy",
+        "Project":  "dunker-separado",
+        "Service":  "ping",
+        "WorkingDirectory":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor",
+        "ComposeFiles":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\compose.separado.yaml",
+        "Mounts":  [
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\config",
+                           "Destination":  "/etc/dunker",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       },
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\runtime",
+                           "Destination":  "/opt/dunker",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       }
+                   ],
+        "Ports":  {
+                      "9427/tcp":  null
+                  }
+    },
+    {
+        "Name":  "dunker-separado-sharepoint-prometheus-1",
+        "Image":  "prom/prometheus:v3.13.3",
+        "Status":  "running",
+        "Health":  null,
+        "Project":  "dunker-separado",
+        "Service":  "sharepoint-prometheus",
+        "WorkingDirectory":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor",
+        "ComposeFiles":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\compose.separado.yaml",
+        "Mounts":  [
+                       {
+                           "Type":  "volume",
+                           "Source":  "/var/lib/docker/volumes/dunker-separado_sharepoint_prometheus_data/_data",
+                           "Destination":  "/prometheus",
+                           "VolumeName":  "dunker-separado_sharepoint_prometheus_data",
+                           "ReadWrite":  true
+                       },
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\config\\sharepoint\\prometheus.yml",
+                           "Destination":  "/etc/dunker/sharepoint/prometheus.yml",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       },
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\config\\sharepoint\\rules.yml",
+                           "Destination":  "/etc/dunker/sharepoint/rules.yml",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       }
+                   ],
+        "Ports":  {
+                      "9090/tcp":  null
+                  }
+    },
+    {
+        "Name":  "dunker-separado-sharepoint-1",
+        "Image":  "vitorbrabodunker/dunker-monitor-separado:1.2.0",
+        "Status":  "running",
+        "Health":  "healthy",
+        "Project":  "dunker-separado",
+        "Service":  "sharepoint",
+        "WorkingDirectory":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor",
+        "ComposeFiles":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\compose.separado.yaml",
+        "Mounts":  [
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\config\\sharepoint\\private",
+                           "Destination":  "/data",
+                           "VolumeName":  null,
+                           "ReadWrite":  true
+                       },
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\runtime\\sharepoint_collector.py",
+                           "Destination":  "/opt/dunker/sharepoint_collector.py",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       }
+                   ],
+        "Ports":  {
+                      "9427/tcp":  null
+                  }
+    },
+    {
+        "Name":  "dunker-separado-snmp-1",
+        "Image":  "prom/snmp-exporter:v0.30.1",
+        "Status":  "running",
+        "Health":  null,
+        "Project":  "dunker-separado",
+        "Service":  "snmp",
+        "WorkingDirectory":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor",
+        "ComposeFiles":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\compose.separado.yaml,C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\compose.integracoes.yaml",
+        "Mounts":  [
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\config",
+                           "Destination":  "/etc/dunker",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       }
+                   ],
+        "Ports":  {
+                      "9116/tcp":  null
+                  }
+    },
+    {
+        "Name":  "dunker-separado-alloy-1",
+        "Image":  "grafana/alloy:v1.20.1",
+        "Status":  "running",
+        "Health":  null,
+        "Project":  "dunker-separado",
+        "Service":  "alloy",
+        "WorkingDirectory":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor",
+        "ComposeFiles":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\compose.separado.yaml",
+        "Mounts":  [
+                       {
+                           "Type":  "bind",
+                           "Source":  "/run/desktop/mnt/host/c/Users/VitorBrabodaSilvaDun/Docker/dunker-monitor/config",
+                           "Destination":  "/etc/dunker",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       },
+                       {
+                           "Type":  "bind",
+                           "Source":  "/proc",
+                           "Destination":  "/host/proc",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       },
+                       {
+                           "Type":  "bind",
+                           "Source":  "/sys",
+                           "Destination":  "/host/sys",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       },
+                       {
+                           "Type":  "volume",
+                           "Source":  "/var/lib/docker/volumes/dunker-separado_alloy_data/_data",
+                           "Destination":  "/var/lib/alloy/data",
+                           "VolumeName":  "dunker-separado_alloy_data",
+                           "ReadWrite":  true
+                       }
+                   ],
+        "Ports":  {
+                      "1514/tcp":  [
+                                       {
+                                           "HostIp":  "127.0.0.1",
+                                           "HostPort":  "1514"
+                                       }
+                                   ],
+                      "1514/udp":  [
+                                       {
+                                           "HostIp":  "127.0.0.1",
+                                           "HostPort":  "1514"
+                                       }
+                                   ]
+                  }
+    },
+    {
+        "Name":  "dunker-separado-loki-1",
+        "Image":  "grafana/loki:3.7.8",
+        "Status":  "running",
+        "Health":  null,
+        "Project":  "dunker-separado",
+        "Service":  "loki",
+        "WorkingDirectory":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor",
+        "ComposeFiles":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\compose.separado.yaml",
+        "Mounts":  [
+                       {
+                           "Type":  "volume",
+                           "Source":  "/var/lib/docker/volumes/dunker-separado_loki_data/_data",
+                           "Destination":  "/loki",
+                           "VolumeName":  "dunker-separado_loki_data",
+                           "ReadWrite":  true
+                       },
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\config",
+                           "Destination":  "/etc/dunker",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       }
+                   ],
+        "Ports":  {
+                      "3100/tcp":  null
+                  }
+    },
+    {
+        "Name":  "dunker-separado-prometheus-1",
+        "Image":  "prom/prometheus:v3.13.3",
+        "Status":  "running",
+        "Health":  null,
+        "Project":  "dunker-separado",
+        "Service":  "prometheus",
+        "WorkingDirectory":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor",
+        "ComposeFiles":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\compose.separado.yaml",
+        "Mounts":  [
+                       {
+                           "Type":  "volume",
+                           "Source":  "/var/lib/docker/volumes/dunker-separado_prometheus_data/_data",
+                           "Destination":  "/prometheus",
+                           "VolumeName":  "dunker-separado_prometheus_data",
+                           "ReadWrite":  true
+                       },
+                       {
+                           "Type":  "bind",
+                           "Source":  "/run/desktop/mnt/host/c/Users/VitorBrabodaSilvaDun/Docker/dunker-monitor/config",
+                           "Destination":  "/etc/dunker",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       }
+                   ],
+        "Ports":  {
+                      "9090/tcp":  [
+                                       {
+                                           "HostIp":  "127.0.0.1",
+                                           "HostPort":  "9090"
+                                       }
+                                   ]
+                  }
+    },
+    {
+        "Name":  "dunker-separado-alertmanager-1",
+        "Image":  "prom/alertmanager:v0.34.1",
+        "Status":  "running",
+        "Health":  null,
+        "Project":  "dunker-separado",
+        "Service":  "alertmanager",
+        "WorkingDirectory":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor",
+        "ComposeFiles":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\compose.separado.yaml",
+        "Mounts":  [
+                       {
+                           "Type":  "volume",
+                           "Source":  "/var/lib/docker/volumes/dunker-separado_alertmanager_data/_data",
+                           "Destination":  "/alertmanager",
+                           "VolumeName":  "dunker-separado_alertmanager_data",
+                           "ReadWrite":  true
+                       },
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\config",
+                           "Destination":  "/etc/dunker",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       }
+                   ],
+        "Ports":  {
+                      "9093/tcp":  [
+                                       {
+                                           "HostIp":  "127.0.0.1",
+                                           "HostPort":  "9093"
+                                       }
+                                   ]
+                  }
+    },
+    {
+        "Name":  "dunker-separado-blackbox-1",
+        "Image":  "prom/blackbox-exporter:v0.28.0",
+        "Status":  "running",
+        "Health":  null,
+        "Project":  "dunker-separado",
+        "Service":  "blackbox",
+        "WorkingDirectory":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor",
+        "ComposeFiles":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\compose.separado.yaml",
+        "Mounts":  [
+                       {
+                           "Type":  "bind",
+                           "Source":  "C:\\Users\\VitorBrabodaSilvaDun\\Docker\\dunker-monitor\\config",
+                           "Destination":  "/etc/dunker",
+                           "VolumeName":  null,
+                           "ReadWrite":  false
+                       }
+                   ],
+        "Ports":  {
+                      "9115/tcp":  null
+                  }
+    }
+]

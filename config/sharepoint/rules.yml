@@ -1,0 +1,46 @@
+groups:
+- name: dunker-sharepoint
+  rules:
+  - alert: SharePointArmazenamentoAtencao
+    expr: dnk_sharepoint_state == 1
+    for: 10m
+    labels: {severity: warning, component: sharepoint}
+    annotations:
+      summary: 'SharePoint: armazenamento em atenção — {{ $labels.Cliente }}'
+      description: 'O cliente atingiu o limite de atenção cadastrado. Confira o dashboard SharePoint.'
+  - alert: SharePointArmazenamentoCritico
+    expr: dnk_sharepoint_state == 2
+    for: 10m
+    labels: {severity: critical, component: sharepoint}
+    annotations:
+      summary: 'SharePoint: armazenamento crítico — {{ $labels.Cliente }}'
+  - alert: SharePointArmazenamentoEmergencia
+    expr: dnk_sharepoint_state == 3
+    for: 5m
+    labels: {severity: critical, component: sharepoint}
+    annotations:
+      summary: 'SharePoint: armazenamento em emergência — {{ $labels.Cliente }}'
+  - alert: SharePointColetaOuRelatorioIndisponivel
+    expr: dnk_sharepoint_state == 4
+    for: 15m
+    labels: {severity: warning, component: sharepoint}
+    annotations:
+      summary: 'SharePoint: coleta com erro, ausente ou antiga — {{ $labels.Cliente }}'
+  - alert: SharePointCapacidadeNaoInformada
+    expr: dnk_sharepoint_state == 5
+    for: 1h
+    labels: {severity: info, component: sharepoint}
+    annotations:
+      summary: 'SharePoint: informe a capacidade total — {{ $labels.Cliente }}'
+  - alert: SharePointSegredoProximoDeExpirar
+    expr: (dnk_sharepoint_secret_expiry_timestamp_seconds - time()) < 30 * 86400
+    for: 1h
+    labels: {severity: warning, component: sharepoint}
+    annotations:
+      summary: 'SharePoint: confira a validade do segredo — {{ $labels.Cliente }}'
+  - alert: SharePointColetorIndisponivel
+    expr: up{job="dunker_sharepoint"} == 0 or absent(up{job="dunker_sharepoint"})
+    for: 10m
+    labels: {severity: critical, component: sharepoint}
+    annotations:
+      summary: 'Coletor SharePoint indisponível'

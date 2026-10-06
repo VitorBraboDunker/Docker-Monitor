@@ -70,8 +70,8 @@ groups:
       severity: critical
     annotations:
       summary: 'Link sem resposta: {{ $labels.Cliente }} / {{ $labels.instance }}'
-      description: "ICMP falhou por 2 minutos. ICMP bloqueado n\xE3o comprova queda\
-        \ de toda a rede."
+      description: ICMP falhou por 2 minutos. ICMP bloqueado não comprova queda de
+        toda a rede.
   - alert: LatenciaAlta
     expr: dnk_ping_rtt_seconds * 1000 > on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
       dnk_ping_config_latency_warning_milliseconds and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
@@ -83,7 +83,7 @@ groups:
     labels:
       severity: warning
     annotations:
-      summary: "Lat\xEAncia acima do limite configurado: {{ $labels.instance }}"
+      summary: 'Latência acima do limite configurado: {{ $labels.instance }}'
       description: Limite definido no cadastro de monitoramento.
   - alert: PerdaDePacotes
     expr: dnk_ping_loss_percent > on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
@@ -110,17 +110,16 @@ groups:
     labels:
       severity: warning
     annotations:
-      summary: "Falha de medi\xE7\xE3o de perda"
-      description: "Verifique permiss\xF5es ICMP, configura\xE7\xE3o e capacidade\
-        \ da VM."
+      summary: Falha de medição de perda
+      description: Verifique permissões ICMP, configuração e capacidade da VM.
   - alert: SNMPIndisponivel
     expr: up{job="snmp"} == 0
     for: 3m
     labels:
       severity: critical
     annotations:
-      summary: "SNMP indispon\xEDvel: {{ $labels.instance }}"
-      description: "Confira rota/VPN, UDP 161, credenciais e suporte dos m\xF3dulos."
+      summary: 'SNMP indisponível: {{ $labels.instance }}'
+      description: Confira rota/VPN, UDP 161, credenciais e suporte dos módulos.
   - alert: SemTelemetria
     expr: dnk:target_health == 1
     for: 3m
@@ -167,29 +166,225 @@ groups:
     labels:
       severity: critical
     annotations:
-      summary: "Coletor indispon\xEDvel"
-      description: "Confira o servi\xE7o e os logs da VM."
+      summary: Coletor indisponível
+      description: Confira o serviço e os logs da VM.
   - alert: InventarioAusente
     expr: absent(dnk_target_expected)
     for: 3m
     labels:
       severity: critical
     annotations:
-      summary: "Invent\xE1rio sem dados"
-      description: "O painel geral depende do invent\xE1rio."
+      summary: Inventário sem dados
+      description: O painel geral depende do inventário.
   - alert: ServicoIndisponivel
     expr: probe_success{job=~"blackbox_http|blackbox_tcp"} == 0
     for: 2m
     labels:
       severity: critical
     annotations:
-      summary: "Endpoint indispon\xEDvel: {{ $labels.instance }}"
-      description: "Verifique servi\xE7o, porta, certificado ou rota."
+      summary: 'Endpoint indisponível: {{ $labels.instance }}'
+      description: Verifique serviço, porta, certificado ou rota.
   - alert: VerificacaoSemResposta
     expr: dnk_check_success == 0
     for: 2m
     labels:
       severity: critical
     annotations:
-      summary: "Verifica\xE7\xE3o falhou: {{ $labels.monitor_name }}"
-      description: "Tipo: {{ $labels.tipo }}. Confira destino, rede e par\xE2metros."
+      summary: 'Verificação falhou: {{ $labels.monitor_name }}'
+      description: 'Tipo: {{ $labels.tipo }}. Confira destino, rede e parâmetros.'
+- name: dunker-links-dashboard-v1
+  interval: 30s
+  rules:
+  - record: dnk:link_inventory
+    expr: "max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)\
+      \ (\n  dnk_target_expected{tipo=\"icmp\"}\n  or (last_over_time(dnk_target_expected{tipo=\"\
+      icmp\"}[24h])\n      unless on() (max(up{job=\"dunker_inventory\"}) == 1))\n\
+      )"
+  - record: dnk:link_expected
+    expr: "label_join(\n  label_replace(dnk:link_inventory{monitor_id!=\"\"}, \"link_key\"\
+      , \"$1\", \"monitor_id\", \"(.+)\")\n  or label_join(dnk:link_inventory{monitor_id=\"\
+      \"}, \"link_key\", \" | \", \"Cliente\", \"Unidade\", \"Provedor\", \"instance\"\
+      ),\n  \"link_label\", \" • \", \"monitor_name\", \"Unidade\", \"Provedor\",\
+      \ \"instance\"\n)"
+  - record: dnk:link_fresh
+    expr: "((max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)\
+      \ (dnk_ping_collector_success{tipo=\"icmp\"}) == 1)\nand on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)\
+      \ ((time() - max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)\
+      \ (dnk_ping_last_measurement_timestamp_seconds{tipo=\"icmp\"}))\n  < on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)\
+      \ max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name) (dnk_check_config_stale_seconds{tipo=\"\
+      icmp\"}))\nand on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)\
+      \ (max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name) (dnk_ping_packets_sent{tipo=\"\
+      icmp\"}) > 0)\nand on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)\
+      \ (max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name) (dnk_ping_loss_percent{tipo=\"\
+      icmp\"}) >= 0)\nand on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)\
+      \ (max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name) (dnk_ping_loss_percent{tipo=\"\
+      icmp\"}) <= 100)\nand on() (max(up{job=\"dunker_inventory\"}) == 1)\nand on()\
+      \ (max(dnk_ping_config_error) == 0)) * on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)\
+      \ group_left(link_key,link_label) dnk:link_expected"
+  - record: dnk:link_loss_percent
+    expr: (max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (dnk_ping_loss_percent{tipo="icmp"})) * on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      group_left(link_key,link_label) dnk:link_expected and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      dnk:link_fresh
+  - record: dnk:link_packets_sent
+    expr: (max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (dnk_ping_packets_sent{tipo="icmp"})) * on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      group_left(link_key,link_label) dnk:link_expected and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      dnk:link_fresh
+  - record: dnk:link_packets_received
+    expr: (max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (dnk_ping_packets_received{tipo="icmp"})) * on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      group_left(link_key,link_label) dnk:link_expected and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      dnk:link_fresh
+  - record: dnk:link_measurement_timestamp_seconds
+    expr: (max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (dnk_ping_last_measurement_timestamp_seconds{tipo="icmp"})) * on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      group_left(link_key,link_label) dnk:link_expected and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      dnk:link_fresh
+  - record: dnk:link_rtt_seconds
+    expr: (max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (dnk_ping_rtt_seconds{tipo="icmp"})) * on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      group_left(link_key,link_label) dnk:link_expected and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      dnk:link_fresh and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name) (dnk_ping_packets_received{tipo="icmp"})
+      > 0)
+  - record: dnk:link_latency_warning_ms
+    expr: (max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (dnk_ping_config_latency_warning_milliseconds{tipo="icmp"})) * on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      group_left(link_key,link_label) dnk:link_expected
+  - record: dnk:link_loss_warning_percent
+    expr: (max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (dnk_ping_config_loss_warning_percent{tipo="icmp"})) * on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      group_left(link_key,link_label) dnk:link_expected
+  - record: dnk:link_latency_high_ms
+    expr: 3 * dnk:link_latency_warning_ms
+  - record: dnk:link_loss_high_percent
+    expr: clamp_max(clamp_min(4 * dnk:link_loss_warning_percent, 20), 100)
+  - record: dnk:link_available
+    expr: dnk:link_loss_percent < bool 100
+  - record: dnk:link_degraded
+    expr: "clamp_max(\n  ((dnk:link_rtt_seconds * 1000 > bool on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ dnk:link_latency_warning_ms)\n    or on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (0 * dnk:link_loss_percent))\n  + on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (dnk:link_loss_percent > bool 0), 1\n) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ dnk:link_fresh"
+  - record: dnk:link_persistent
+    expr: '(min_over_time(dnk:link_degraded[10m]) == 1)
+
+      and (count_over_time(dnk:link_degraded[10m]) >= 20)
+
+      and (dnk:link_degraded offset 10m == 1)
+
+      and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)
+      (changes(dnk:link_measurement_timestamp_seconds[10m]) >= 2)
+
+      and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)
+      dnk:link_fresh'
+  - record: dnk:link_warning
+    expr: "((max_over_time(dnk:link_rtt_seconds[2m]) * 1000\n  > on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ dnk:link_latency_warning_ms)\nor on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (max_over_time(dnk:link_loss_percent[2m]) > 0))\nand on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ dnk:link_fresh"
+  - record: dnk:link_high
+    expr: "((dnk:link_rtt_seconds * 1000 > on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ dnk:link_latency_high_ms)\nor on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (dnk:link_loss_percent >= 50)\nor on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (\n  (avg_over_time(dnk:link_loss_percent[5m]) >= on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ dnk:link_loss_high_percent)\n  and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (count_over_time(dnk:link_loss_percent[5m]) >= 10)\n  and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (dnk:link_loss_percent offset 5m >= 0)\n  and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (changes(dnk:link_measurement_timestamp_seconds[5m]) >= 2)\n)) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ dnk:link_fresh"
+  - record: dnk:link_state
+    expr: "(\n  (4 + 0 * (dnk:link_loss_percent == 100))\n  or on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (4 + 0 * dnk:link_persistent)\n  or on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (3 + 0 * dnk:link_high)\n  or on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (2 + 0 * dnk:link_warning)\n  or on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (0 * dnk:link_loss_percent)\n) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ dnk:link_fresh\nor on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ dnk:link_expected"
+  - record: dnk:link_reason
+    expr: "(\n  (4 + 0 * (dnk:link_loss_percent == 100))\n  or on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (5 + 0 * dnk:link_persistent)\n  or on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (3 + 0 * dnk:link_high)\n  or on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (2 + 0 * dnk:link_warning)\n  or on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ (0 * dnk:link_loss_percent)\n) and on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ dnk:link_fresh\nor on (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name,link_key,link_label)\
+      \ dnk:link_expected"
+  - record: dnk:client_link_state
+    expr: max by (Cliente) (dnk:link_state)
+- name: dunker-snmp-integracoes
+  rules:
+  - record: dnk:snmp_expected
+    expr: max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (dnk_snmp_device_info)
+  - record: dnk:snmp_up
+    expr: max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (up{job="snmp",managed_by="dnk"} and (time() - timestamp(up{job="snmp",managed_by="dnk"})
+      < 180))
+  - record: dnk:snmp_cpu_percent
+    expr: max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (sonicCurrentCPUUtil{job="snmp_health"} or dnkCustomCPUPercent{job="snmp_health"})
+      or avg by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name) (hrProcessorLoad{job="snmp_health"})
+  - record: dnk:snmp_ram_percent
+    expr: max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (sonicCurrentRAMUtil{job="snmp_health"} or dnkCustomRAMPercent{job="snmp_health"})
+      or max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name) (100
+      * hrStorageUsed{job="snmp_health",hrStorageDescr=~"(?i).*ram.*|.*main memory.*"}
+      / hrStorageSize{job="snmp_health",hrStorageDescr=~"(?i).*ram.*|.*main memory.*"})
+  - record: dnk:snmp_in_bps
+    expr: (rate(ifHCInOctets{job="snmp",managed_by="dnk"}[5m]) * 8) or on (monitor_id,ifIndex)
+      (rate(ifInOctets{job="snmp",managed_by="dnk"}[5m]) * 8)
+  - record: dnk:snmp_out_bps
+    expr: (rate(ifHCOutOctets{job="snmp",managed_by="dnk"}[5m]) * 8) or on (monitor_id,ifIndex)
+      (rate(ifOutOctets{job="snmp",managed_by="dnk"}[5m]) * 8)
+  - record: dnk:snmp_in_selected_bps
+    expr: (dnk:snmp_in_bps and on (monitor_id,ifIndex) dnk_snmp_interface_selected)
+      or (dnk:snmp_in_bps unless on (monitor_id) dnk_snmp_interface_selected)
+  - record: dnk:snmp_out_selected_bps
+    expr: (dnk:snmp_out_bps and on (monitor_id,ifIndex) dnk_snmp_interface_selected)
+      or (dnk:snmp_out_bps unless on (monitor_id) dnk_snmp_interface_selected)
+  - record: dnk:snmp_download_utilization_percent
+    expr: 100 * dnk:snmp_in_selected_bps / on (monitor_id,ifIndex) group_left() (dnk_snmp_contracted_download_bits
+      > 0)
+  - record: dnk:snmp_upload_utilization_percent
+    expr: 100 * dnk:snmp_out_selected_bps / on (monitor_id,ifIndex) group_left() (dnk_snmp_contracted_upload_bits
+      > 0)
+  - record: dnk:firewallcpu_state
+    expr: max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      ((2 * (avg_over_time(dnk:snmp_cpu_percent[5m]) > bool 85) + (avg_over_time(dnk:snmp_cpu_percent[5m])
+      > bool 95)) and on (monitor_id) (up{job="snmp_health"} == 1))
+  - record: dnk:firewallmemory_state
+    expr: max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      ((2 * (avg_over_time(dnk:snmp_ram_percent[5m]) > bool 90) + (avg_over_time(dnk:snmp_ram_percent[5m])
+      > bool 97)) and on (monitor_id) (up{job="snmp_health"} == 1))
+  - record: dnk:firewallwan_state
+    expr: max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      (3 * (ifOperStatus{job="snmp",managed_by="dnk"} != bool 1) and on (monitor_id,ifIndex)
+      dnk_snmp_interface_selected)
+  - record: dnk:firewallavailability_state
+    expr: 4 * (1 - dnk:snmp_up)
+  - record: dnk:firewall_state
+    expr: (max by (Cliente,Unidade,Provedor,instance,tipo,monitor_id,monitor_name)
+      ({__name__=~"dnk:firewall(availability|cpu|memory|wan)_state"}) and on (monitor_id)
+      dnk:snmp_expected) or on (monitor_id) dnk:snmp_expected
+  - record: dnk:client_component_state
+    expr: max by (Cliente,Unidade) (dnk:link_state or dnk:firewall_state)
+- name: dunker-snmp-alertas
+  rules:
+  - alert: FirewallCPUAlta
+    expr: dnk:snmp_cpu_percent > 85 and on (monitor_id) (up{job="snmp_health"} ==
+      1)
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'CPU alta: {{ $labels.monitor_name }}'
+  - alert: FirewallRAMAlta
+    expr: dnk:snmp_ram_percent > 90 and on (monitor_id) (up{job="snmp_health"} ==
+      1)
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'RAM alta: {{ $labels.monitor_name }}'

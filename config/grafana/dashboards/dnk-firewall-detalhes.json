@@ -1,0 +1,728 @@
+{
+  "uid": "dnk-firewall-detalhes",
+  "title": "Dunker | Detalhes do firewall",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": [
+    "Dunker"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "Cliente",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": "label_values(dnk_snmp_device_info, Cliente)",
+        "definition": "label_values(dnk_snmp_device_info, Cliente)",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "sort": 1
+      },
+      {
+        "name": "Unidade",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": "label_values(dnk_snmp_device_info{Cliente=~\"$Cliente\"}, Unidade)",
+        "definition": "label_values(dnk_snmp_device_info{Cliente=~\"$Cliente\"}, Unidade)",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "sort": 1
+      },
+      {
+        "name": "Equipamento",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": "label_values(dnk_snmp_device_info{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\"}, monitor_name)",
+        "definition": "label_values(dnk_snmp_device_info{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\"}, monitor_name)",
+        "refresh": 1,
+        "multi": false,
+        "includeAll": false,
+        "allValue": null,
+        "current": {},
+        "sort": 1
+      }
+    ]
+  },
+  "links": [
+    {
+      "title": "Configurações externas",
+      "type": "link",
+      "url": "/a/dunker-integracoes-app/links",
+      "targetBlank": true
+    },
+    {
+      "title": "Painéis Dunker",
+      "type": "dashboards",
+      "tags": [
+        "Dunker"
+      ],
+      "asDropdown": true,
+      "includeVars": true,
+      "keepTime": true
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Estado",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "dnk:firewall_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",monitor_name=~\"$Equipamento\"}",
+          "legendFormat": "{{monitor_name}} {{ifName}} {{ifDescr}}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 12
+          },
+          "noValue": "Não exposta",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "gray",
+                "value": 1
+              },
+              {
+                "color": "yellow",
+                "value": 2
+              },
+              {
+                "color": "orange",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 4
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "OK"
+                },
+                "1": {
+                  "text": "SEM DADOS"
+                },
+                "2": {
+                  "text": "ATENÇÃO"
+                },
+                "3": {
+                  "text": "GRAVE"
+                },
+                "4": {
+                  "text": "CRÍTICO"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "textMode": "value_and_name",
+        "graphMode": "none",
+        "orientation": "auto"
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "CPU",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "dnk:snmp_cpu_percent{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",monitor_name=~\"$Equipamento\"}",
+          "legendFormat": "{{monitor_name}} {{ifName}} {{ifDescr}}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 12
+          },
+          "noValue": "Não exposta"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "RAM",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "dnk:snmp_ram_percent{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",monitor_name=~\"$Equipamento\"}",
+          "legendFormat": "{{monitor_name}} {{ifName}} {{ifDescr}}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 12
+          },
+          "noValue": "Não exposta"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Uptime SNMP",
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sysUpTime{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",monitor_name=~\"$Equipamento\"} / 100",
+          "legendFormat": "{{monitor_name}} {{ifName}} {{ifDescr}}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 12
+          },
+          "noValue": "Não exposta"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "CPU ao longo do tempo",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "dnk:snmp_cpu_percent{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",monitor_name=~\"$Equipamento\"}",
+          "legendFormat": "{{monitor_name}} {{ifName}} {{ifDescr}}",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 12
+          },
+          "noValue": "Não exposta"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "RAM ao longo do tempo",
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "dnk:snmp_ram_percent{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",monitor_name=~\"$Equipamento\"}",
+          "legendFormat": "{{monitor_name}} {{ifName}} {{ifDescr}}",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 12
+          },
+          "noValue": "Não exposta"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Tráfego recebido por interface",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "dnk:snmp_in_selected_bps{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",monitor_name=~\"$Equipamento\"}",
+          "legendFormat": "{{monitor_name}} {{ifName}} {{ifDescr}}",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 12
+          },
+          "noValue": "Não exposta"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Tráfego enviado por interface",
+      "gridPos": {
+        "x": 12,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "dnk:snmp_out_selected_bps{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",monitor_name=~\"$Equipamento\"}",
+          "legendFormat": "{{monitor_name}} {{ifName}} {{ifDescr}}",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 12
+          },
+          "noValue": "Não exposta"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Download · percentual contratado",
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "dnk:snmp_download_utilization_percent{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",monitor_name=~\"$Equipamento\"}",
+          "legendFormat": "{{monitor_name}} {{ifName}} {{ifDescr}}",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 12
+          },
+          "noValue": "Não exposta"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Upload · percentual contratado",
+      "gridPos": {
+        "x": 12,
+        "y": 20,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "dnk:snmp_upload_utilization_percent{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",monitor_name=~\"$Equipamento\"}",
+          "legendFormat": "{{monitor_name}} {{ifName}} {{ifDescr}}",
+          "instant": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 12
+          },
+          "noValue": "Não exposta"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "Estado das interfaces (1 = operacional)",
+      "gridPos": {
+        "x": 0,
+        "y": 28,
+        "w": 24,
+        "h": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "ifOperStatus{job=\"snmp\",Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",monitor_name=~\"$Equipamento\"}",
+          "legendFormat": "{{monitor_name}} {{ifName}} {{ifDescr}}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 12
+          },
+          "noValue": "Não exposta"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    }
+  ]
+}

@@ -15,6 +15,9 @@ import urllib.parse
 import urllib.request
 import uuid
 from pathlib import Path
+import snmp_manager as snmp
+import sharepoint_proxy
+import grafana_access
 
 
 DATA_DIR = Path(os.environ.get("DNK_ADMIN_DATA", "/data"))
@@ -72,6 +75,10 @@ def atomic_json(path: Path, value) -> None:
 
 
 SUPPORTED = {'icmp', 'http', 'tcp', 'dns'}
+MONITOR_FIELDS = {'tipo','name','Cliente','Unidade','Provedor','instance','enabled',
+    'interval_seconds','timeout_seconds','packet_count','packet_interval_seconds',
+    'latency_warning_ms','loss_warning_percent','http_method','expected_status',
+    'follow_redirects','tcp_host','tcp_port','dns_name','dns_type','dns_port','id','criticality'}
 
 def persist(rows: list[dict]) -> None:
     atomic_json(INVENTORY, rows)
@@ -85,6 +92,50 @@ def persist(rows: list[dict]) -> None:
             if row.get('id'):labels.update(monitor_id=row['id'],monitor_name=row['name'])
             targets.append({'targets':[row['instance']], 'labels':labels})
         atomic_json(DATA_DIR / (kind+'.json'), targets)
+
+
+def snmp_rows():
+    return [r for r in load_inventory() if r.get('managed_snmp')]
+
+
+def snmp_auths():
+    return snmp.read_json(snmp.PRIVATE / 'credentials.json', {})
+
+
+def save_devices(rows, auths):
+    """Validate exporter first; roll back local files and exporter on write failure."""
+    paths=[INVENTORY, DATA_DIR/'snmp.json', snmp.PRIVATE/'credentials.json', snmp.PRIVATE/'snmp-managed.yml']
+    previous={p:p.read_bytes() if p.exists() else None for p in paths}
+    old_rows=load_inventory();old_auths=snmp_auths()
+    snmp.apply(rows,auths)
+    try:
+        snmp.atomic(snmp.PRIVATE/'credentials.json',auths)
+        atomic_json(INVENTORY,rows)
+        atomic_json(DATA_DIR/'snmp.json',snmp.targets(rows,snmp.read_json(DATA_DIR/'snmp.json',[])))
+    except Exception:
+        for p,body in previous.items():
+            if body is not None:
+                temporary=p.with_suffix(p.suffix+'.rollback');temporary.write_bytes(body)
+                os.chmod(temporary,0o600 if p.parent==snmp.PRIVATE else 0o644);os.replace(temporary,p)
+            elif p.exists(): p.unlink()
+        try: snmp.apply(old_rows,old_auths)
+        except ValueError: pass
+        raise ValueError('Falha ao gravar a configuração. Confira as permissões dos volumes.') from None
+
+
+def test_device(payload):
+    # The same lock covers temporary auth changes, CRUD and exporter reloads.
+    with LOCK:
+        rows=load_inventory();auths=snmp_auths()
+        current=next((r for r in rows if r.get('managed_snmp') and r['id']==payload.get('id')),None)
+        row,auth=snmp.normalize(payload,current,auths.get(current['id']) if current else None)
+        trial_rows=[r for r in rows if r.get('id')!=row['id']]+[row]
+        trial_auths=dict(auths);trial_auths[row['id']]=auth
+        snmp.apply(trial_rows,trial_auths)
+        try: result=snmp.discover(row)
+        finally:
+            snmp.apply(rows,auths)
+        return result
 
 
 def bounded_number(value, label, minimum, maximum, integer=False):
@@ -101,6 +152,8 @@ def normalize(payload: dict, current: dict | None = None) -> dict:
     row = dict(DEFAULTS)
     if current:
         row.update(current)
+    if set(payload) - MONITOR_FIELDS:
+        raise ValueError('Campo de monitor inválido')
     row.update(payload)
     row["id"] = str(uuid.UUID(current["id"])) if current else str(uuid.uuid4())
     row["name"] = str(row.get("name", "")).strip()
@@ -173,63 +226,23 @@ def test_target(payload: dict) -> dict:
             "rtt_ms": round(result["rtt"] * 1000, 2) if result["received"] else None}
 
 
-PAGE = r'''<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dunker · Verificações</title><style>
-*{box-sizing:border-box}body{margin:0;background:#f3f6fb;color:#172b4d;font:14px 'Segoe UI',sans-serif}header{background:#122952;color:white;padding:24px}header h1{margin:0;font-size:22px}header a{color:white;float:right}main{max-width:1200px;margin:24px auto;padding:0 16px}.bar,.card{background:white;padding:18px;border:1px solid #dae3ef;border-radius:12px;margin-bottom:16px}.bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}input,select{padding:10px;border:1px solid #bccbde;border-radius:7px;width:100%;font:inherit}button{padding:10px 14px;border:0;border-radius:7px;cursor:pointer;background:#e7eef9;color:#122952;font-weight:600}.primary{background:#2869d8;color:white}.danger{color:#aa2424;background:#ffeded}table{width:100%;border-collapse:collapse}td,th{padding:12px;text-align:left;border-bottom:1px solid #e6edf5}th{color:#65758f;font-size:12px}.muted{color:#6b7e96}dialog{border:0;border-radius:14px;width:min(860px,95vw);max-height:92vh;padding:24px}dialog::backdrop{background:#12295299}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.wide{grid-column:1/-1}label{display:block;font-weight:600;margin-bottom:6px}small{color:#677c98}.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}.notice{padding:12px;background:#eef4ff;border-radius:8px;margin-top:14px;white-space:pre-wrap}#message{color:#b3261e}#search{max-width:420px}.hidden{display:none!important}@media(max-width:700px){.grid{grid-template-columns:1fr}.tablewrap{overflow:auto}}
-</style></head><body><header><a href="/">Voltar ao Grafana</a><h1>DUNKER IT · Verificações</h1><p>Disponibilidade de links, sites, portas e DNS</p></header><main><div class="bar"><input id="search" placeholder="Buscar cliente, nome ou destino"><button class="primary" id="new">+ Nova verificação</button><button id="reload">Atualizar</button><span id="summary" class="muted"></span></div><p id="message" role="alert"></p><div class="card tablewrap"><table><thead><tr><th>Nome / tipo</th><th>Cliente / unidade</th><th>Destino</th><th>Frequência</th><th>Estado</th><th>Ações</th></tr></thead><tbody id="rows"></tbody></table><p id="empty">Nenhuma verificação encontrada.</p></div></main>
-<dialog id="modal"><form id="form"><h2 id="title">Nova verificação</h2><input id="id" type="hidden"><div class="grid">
-<div><label>Tipo de verificação</label><select id="tipo"><option value="icmp">Ping — ICMP</option><option value="http">HTTP / HTTPS</option><option value="tcp">TCP</option><option value="dns">DNS</option></select></div><div class="wide"><label>Nome da verificação</label><input id="name" required placeholder="Ex.: Onkos SP — link Claro"></div>
-<div><label>Cliente</label><input id="Cliente" required></div><div><label>Unidade</label><input id="Unidade" required></div><div><label>Provedor / serviço</label><input id="Provedor" required></div>
-<div class="wide"><label id="destinationLabel">IP de destino</label><input id="instance" required><small id="destinationHint"></small></div>
-<div data-types="tcp"><label>Porta TCP</label><input id="tcp_port" type="number" min="1" max="65535" value="443"></div>
-<div data-types="http"><label>Método</label><select id="http_method"><option>GET</option><option>HEAD</option></select></div><div data-types="http"><label>Código HTTP esperado</label><input id="expected_status" type="number" min="0" max="599" value="0"><small>0 = qualquer código de 200 a 299</small></div><div data-types="http"><label>Seguir redirecionamentos</label><select id="follow_redirects"><option value="true">Sim</option><option value="false">Não</option></select></div>
-<div data-types="dns"><label>Nome a consultar</label><input id="dns_name" placeholder="exemplo.com.br"></div><div data-types="dns"><label>Registro DNS</label><select id="dns_type"><option>A</option><option>AAAA</option><option>CNAME</option><option>MX</option><option>TXT</option><option>NS</option></select></div><div data-types="dns"><label>Porta DNS</label><input id="dns_port" type="number" min="1" max="65535" value="53"></div>
-<div><label>Executar a cada (segundos)</label><input id="interval_seconds" type="number" min="10" max="3600" value="30" required></div><div><label id="timeoutLabel">Timeout por pacote (segundos)</label><input id="timeout_seconds" type="number" min="1" max="30" step="0.5" value="5" required></div><div><label>Estado</label><select id="enabled"><option value="true">Ativo</option><option value="false">Pausado</option></select></div>
-<div data-types="icmp"><label>Quantidade de pacotes</label><input id="packet_count" type="number" min="1" max="20" value="5"></div><div data-types="icmp"><label>Intervalo entre pacotes (segundos)</label><input id="packet_interval_seconds" type="number" min="0.1" max="10" step="0.1" value="1"></div><div data-types="icmp"><label>Limite de perda (%)</label><input id="loss_warning_percent" type="number" min="0" max="100" step="0.1" value="5"></div><div data-types="icmp"><label>Limite de latência média (ms)</label><input id="latency_warning_ms" type="number" min="1" max="10000" value="100"></div>
-</div><div class="notice" id="explanation"></div><div id="testResult" class="notice hidden" role="status"></div><p id="formError" role="alert"></p><div class="actions"><button type="button" id="cancel">Cancelar</button><button type="button" id="test">Testar agora</button><button type="submit" class="primary" id="save">Salvar</button></div></form></dialog>
-<script>
-const $=id=>document.getElementById(id), labels={icmp:'Ping — ICMP',http:'HTTP / HTTPS',tcp:'TCP',dns:'DNS'};let monitors=[];
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function api(path,opt={}){const r=await fetch('api/'+path,{...opt,headers:{'Content-Type':'application/json'}});const j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.error||'Falha na operação');return j}
-function typeChanged(){const t=$('tipo').value;document.querySelectorAll('[data-types]').forEach(e=>{const show=e.dataset.types.split(' ').includes(t);e.classList.toggle('hidden',!show);e.querySelectorAll('input,select').forEach(x=>x.disabled=!show)});$('destinationLabel').textContent={icmp:'IP de destino (IPv4)',http:'URL completa',tcp:'IP ou hostname',dns:'Servidor DNS (IP ou hostname)'}[t];$('instance').placeholder={icmp:'172.16.27.51',http:'https://exemplo.com.br/status',tcp:'servidor.exemplo.com.br',dns:'1.1.1.1'}[t];$('destinationHint').textContent=t==='http'?'Use http:// ou https://. O certificado HTTPS é validado.':'';$('timeoutLabel').textContent=t==='icmp'?'Timeout por pacote (segundos)':'Timeout da verificação (segundos)';$('explanation').textContent={icmp:'Múltiplos pacotes medem perda e latência. O Blackbox mantém uma checagem rápida de disponibilidade independente. Todos os links têm a mesma importância.',http:'Verifica o código de resposta. GET e HEAD disponíveis; cabeçalhos personalizados, autenticação e validação do corpo ainda não estão disponíveis.',tcp:'Verifica se o destino aceita uma conexão na porta informada. Não valida o protocolo de aplicação.',dns:'Consulta o registro no servidor escolhido. Sucesso exige resposta DNS sem erro e pelo menos uma resposta. Não compara um valor de registro esperado.'}[t];$('dns_name').required=t==='dns'}
-async function load(){try{monitors=await api('monitors');$('message').textContent='';render()}catch(e){$('message').textContent=e.message}}
-function render(){const q=$('search').value.toLowerCase(),list=monitors.filter(x=>JSON.stringify(x).toLowerCase().includes(q));$('summary').textContent=`${monitors.length} verificações · ${monitors.filter(x=>x.enabled!==false).length} ativas`;$('empty').hidden=!!list.length;$('rows').innerHTML=list.map(x=>`<tr><td><strong>${esc(x.name||x.instance)}</strong><br>${esc(labels[x.tipo])}</td><td>${esc(x.Cliente)} / ${esc(x.Unidade)}<br>${esc(x.Provedor)}</td><td>${esc(x.instance)}${x.tipo==='dns'?'<br>'+esc(x.dns_name)+' · '+esc(x.dns_type):''}</td><td>${esc(x.interval_seconds||30)}s</td><td>${x.enabled===false?'Pausado':'Ativo'}</td><td><button data-action="edit" data-id="${esc(x.id)}">Editar</button> <button class="danger" data-action="delete" data-id="${esc(x.id)}">Excluir</button></td></tr>`).join('')}
-function openForm(x){$('form').reset();$('id').value=x?.id||'';$('formError').textContent='';$('testResult').classList.add('hidden');$('title').textContent=x?'Editar verificação':'Nova verificação';if(x){['tipo','name','Cliente','Unidade','Provedor','instance','interval_seconds','timeout_seconds','packet_count','packet_interval_seconds','loss_warning_percent','latency_warning_ms','http_method','expected_status','dns_name','dns_type','dns_port','tcp_port'].forEach(k=>{if(x[k]!=null)$(k).value=x[k]});$('enabled').value=String(x.enabled!==false);$('follow_redirects').value=String(x.follow_redirects!==false);if(x.tipo==='tcp')$('instance').value=x.tcp_host||x.instance.replace(/:\d+$/,'').replace(/^\[|\]$/g,'')}typeChanged();$('modal').showModal()}
-function payload(){const t=$('tipo').value,x={tipo:t};['name','Cliente','Unidade','Provedor','instance'].forEach(k=>x[k]=$(k).value.trim());['interval_seconds','timeout_seconds'].forEach(k=>x[k]=Number($(k).value));x.enabled=$('enabled').value==='true';if(t==='icmp')['packet_count','packet_interval_seconds','loss_warning_percent','latency_warning_ms'].forEach(k=>x[k]=Number($(k).value));if(t==='tcp'){x.tcp_host=x.instance;x.tcp_port=Number($('tcp_port').value)}if(t==='http'){x.http_method=$('http_method').value;x.expected_status=Number($('expected_status').value);x.follow_redirects=$('follow_redirects').value==='true'}if(t==='dns'){x.dns_name=$('dns_name').value.trim();x.dns_type=$('dns_type').value;x.dns_port=Number($('dns_port').value)}return x}
-$('form').onsubmit=async e=>{e.preventDefault();$('save').disabled=true;try{const id=$('id').value;await api(id?'monitors/'+id:'monitors',{method:id?'PUT':'POST',body:JSON.stringify(payload())});$('modal').close();await load()}catch(e){$('formError').textContent=e.message}finally{$('save').disabled=false}};
-$('test').onclick=async()=>{if(!$('form').reportValidity())return;$('test').disabled=true;$('testResult').classList.remove('hidden');$('testResult').textContent='Testando…';try{const r=await api('test',{method:'POST',body:JSON.stringify(payload())});$('testResult').textContent=$('tipo').value==='icmp'?`${r.collector_success?(r.success?'Respondeu':'Sem resposta'):'Falha do coletor ICMP'} · ${r.received}/${r.sent} pacotes · perda ${r.loss_percent??'—'}% · latência média ${r.rtt_ms??'—'} ms`:`${r.success?'Sucesso':'Falha'} · ${r.duration_ms} ms${r.http_status_code?' · HTTP '+r.http_status_code:''}${r.dns_rcode!=null?' · DNS rcode '+r.dns_rcode+' · '+r.dns_answers+' respostas':''}${r.error?' · '+r.error:''}`}catch(e){$('testResult').textContent=e.message}finally{$('test').disabled=false}};
-$('rows').onclick=async e=>{const b=e.target.closest('button[data-id]');if(!b)return;const x=monitors.find(x=>x.id===b.dataset.id);if(b.dataset.action==='edit')openForm(x);else if(confirm('Excluir esta verificação? O histórico já coletado será preservado até a retenção expirar.')){try{await api('monitors/'+x.id,{method:'DELETE'});await load()}catch(e){$('message').textContent=e.message}}};$('new').onclick=()=>openForm();$('cancel').onclick=()=>$('modal').close();$('tipo').onchange=typeChanged;$('search').oninput=render;$('reload').onclick=load;typeChanged();load();
-</script></body></html>
-'''
+PAGE_FILE = Path(os.environ.get("DNK_ADMIN_PAGE", "/etc/dunker/admin/index.html"))
+
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
     server_version = "DunkerMonitorAdmin/1.0"
 
+    def end_headers(self):
+        for value in getattr(self, 'grafana_session_cookies', []):
+            self.send_header('Set-Cookie', value)
+        super().end_headers()
+
     def log_message(self, fmt, *args):
         print(f"{self.client_address[0]} {fmt % args}")
 
-    def authorized(self) -> bool:
-        password = read_password()
-        if not password:
-            return False
-        header = self.headers.get("Authorization", "")
-        if not header.startswith("Basic "):
-            return False
-        try:
-            decoded = base64.b64decode(header[6:], validate=True).decode("utf-8")
-            username, supplied = decoded.split(":", 1)
-        except (ValueError, UnicodeDecodeError):
-            return False
-        return hmac.compare_digest(username, "admin") and hmac.compare_digest(supplied.encode(), password.encode())
-
     def require_auth(self) -> bool:
-        if self.path == "/healthz" or self.authorized():
-            return True
-        self.send_response(401)
-        self.send_header("WWW-Authenticate", 'Basic realm="Dunker Monitor"')
-        self.send_header("Content-Length", "0")
-        self.end_headers()
-        return False
+        return grafana_access.authorize(self)
 
     def json_response(self, value, status=200):
         body = json.dumps(value, ensure_ascii=False).encode("utf-8")
@@ -242,6 +255,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def payload(self):
         try:
+            if self.headers.get('Content-Type','').split(';')[0]!='application/json':
+                raise ValueError('Use application/json')
+            origin=self.headers.get('Origin')
+            if origin and urllib.parse.urlsplit(origin).netloc != self.headers.get('Host'):
+                raise ValueError('Origem não permitida')
             length = int(self.headers.get("Content-Length", "0"))
             if length < 0 or length > 65536:
                 raise ValueError("Requisição muito grande")
@@ -253,12 +271,21 @@ class Handler(http.server.BaseHTTPRequestHandler):
             raise ValueError("Dados inválidos") from exc
 
     def do_GET(self):
+        legacy = {'/': 'links', '/index.html': 'links', '/sharepoint/': 'sharepoint'}
+        if self.path in legacy:
+            self.send_response(302)
+            self.send_header('Location', '/a/dunker-integracoes-app/' + legacy[self.path])
+            self.send_header('Content-Length', '0')
+            self.end_headers()
+            return
         if not self.require_auth():
             return
+        if grafana_access.handle(self): return
+        if sharepoint_proxy.handle(self): return
         if self.path == "/healthz":
             return self.json_response({"status": "ok"})
         if self.path in {"/", "/index.html"}:
-            body = PAGE.encode("utf-8")
+            body = PAGE_FILE.read_bytes()
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Cache-Control", "no-store")
@@ -267,14 +294,30 @@ class Handler(http.server.BaseHTTPRequestHandler):
             return self.wfile.write(body)
         if self.path == "/api/monitors":
             with LOCK:
-                return self.json_response([row for row in load_inventory() if row.get("tipo") in SUPPORTED])
+                return self.json_response([row for row in load_inventory() if row.get("tipo") in SUPPORTED and not row.get("managed_snmp")])
+        if self.path == '/api/devices':
+            with LOCK:
+                auths=snmp_auths()
+                return self.json_response([snmp.public(r,auths.get(r['id'])) for r in snmp_rows()])
         self.json_response({"error": "Não encontrado"}, 404)
 
     def do_POST(self):
         if not self.require_auth():
             return
+        if grafana_access.handle(self): return
+        if sharepoint_proxy.handle(self): return
         try:
             payload = self.payload()
+            if self.path == '/api/devices/test':
+                return self.json_response(test_device(payload))
+            if self.path == '/api/devices':
+                with LOCK:
+                    rows=load_inventory();auths=snmp_auths()
+                    row,auth=snmp.normalize(payload)
+                    if any(r.get('managed_snmp') and r['instance']==row['instance'] for r in rows):
+                        raise ValueError('Equipamento já cadastrado; edite o cadastro existente')
+                    rows.append(row);auths[row['id']]=auth;save_devices(rows,auths)
+                return self.json_response(snmp.public(row,auth),201)
             if self.path == "/api/test":
                 return self.json_response(test_target(payload))
             if self.path == "/api/monitors":
@@ -293,13 +336,28 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_PUT(self):
         if not self.require_auth():
             return
+        if grafana_access.handle(self): return
+        if sharepoint_proxy.handle(self): return
+        device=re.fullmatch(r'/api/devices/([0-9a-f-]+)',self.path)
+        if device:
+            try:
+                with LOCK:
+                    rows=load_inventory();auths=snmp_auths()
+                    index=next(i for i,r in enumerate(rows) if r.get('managed_snmp') and r['id']==device[1])
+                    row,auth=snmp.normalize(self.payload(),rows[index],auths.get(device[1]))
+                    if any(i!=index and r.get('managed_snmp') and r['instance']==row['instance'] for i,r in enumerate(rows)):
+                        raise ValueError('Equipamento já cadastrado')
+                    rows[index]=row;auths[row['id']]=auth;save_devices(rows,auths)
+                return self.json_response(snmp.public(row,auth))
+            except StopIteration: return self.json_response({'error':'Equipamento não encontrado'},404)
+            except Exception as exc: return self.json_response({'error':str(exc)},400)
         match = re.fullmatch(r"/api/monitors/([0-9a-f-]+)", self.path)
         if not match:
             return self.json_response({"error": "Não encontrado"}, 404)
         try:
             with LOCK:
                 rows = load_inventory()
-                index = next(i for i, row in enumerate(rows) if row.get("id") == match.group(1))
+                index = next(i for i, row in enumerate(rows) if row.get("id") == match.group(1) and row.get("tipo") in SUPPORTED and not row.get("managed_snmp"))
                 updated = normalize(self.payload(), rows[index])
                 if any(i != index and x.get("tipo") == updated["tipo"] and x.get("instance") == updated["instance"] and x.get("dns_name", "") == updated.get("dns_name", "") and x.get("enabled", True) for i, x in enumerate(rows)):
                     raise ValueError("Já existe um monitor ativo para esse destino e tipo")
@@ -314,16 +372,39 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_DELETE(self):
         if not self.require_auth():
             return
+        if grafana_access.handle(self): return
+        if sharepoint_proxy.handle(self): return
+        origin=self.headers.get('Origin')
+        if origin and urllib.parse.urlsplit(origin).netloc != self.headers.get('Host'):
+            return self.json_response({'error':'Origem não permitida'},403)
+        device=re.fullmatch(r'/api/devices/([0-9a-f-]+)',self.path)
+        if device:
+            try:
+                with LOCK:
+                    rows=load_inventory();auths=snmp_auths()
+                    filtered=[r for r in rows if not (r.get('managed_snmp') and r['id']==device[1])]
+                    if len(filtered)==len(rows): return self.json_response({'error':'Equipamento não encontrado'},404)
+                    auths.pop(device[1],None);save_devices(filtered,auths)
+                return self.json_response({'deleted':True})
+            except Exception as exc: return self.json_response({'error':str(exc)},400)
         match = re.fullmatch(r"/api/monitors/([0-9a-f-]+)", self.path)
         if not match:
             return self.json_response({"error": "Não encontrado"}, 404)
         with LOCK:
             rows = load_inventory()
-            filtered = [row for row in rows if row.get("id") != match.group(1)]
+            filtered = [row for row in rows if not (row.get("id") == match.group(1) and row.get("tipo") in SUPPORTED and not row.get("managed_snmp"))]
             if len(filtered) == len(rows):
                 return self.json_response({"error": "Monitor não encontrado"}, 404)
             persist(filtered)
         self.json_response({"deleted": True})
+
+
+def bootstrap_row(row):
+    if row.get('tipo') not in SUPPORTED:
+        return row
+    payload = {k: v for k, v in row.items() if k in MONITOR_FIELDS}
+    payload['name'] = row.get('name', row['instance'])
+    return normalize(payload, row if row.get('id') else None)
 
 
 if __name__ == "__main__":
@@ -331,9 +412,9 @@ if __name__ == "__main__":
     if not INVENTORY.exists() or (not load_inventory() and not (DATA_DIR / ".initialized").exists()):
         seed = Path("/etc/dunker/inventory.json")
         rows = json.loads(seed.read_text(encoding="utf-8")) if seed.exists() else []
-        rows = [normalize(dict(r, name=r.get("name", r["instance"]))) if r.get("tipo") in SUPPORTED else r for r in rows]
+        rows = [bootstrap_row(r) for r in rows]
         persist(rows)
     rows = load_inventory()
-    persist([normalize(dict(r, name=r.get("name", r["instance"])), r if r.get("id") else None) if r.get("tipo") in SUPPORTED else r for r in rows])
+    persist([bootstrap_row(r) for r in rows])
     (DATA_DIR / ".initialized").touch()
     http.server.ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()

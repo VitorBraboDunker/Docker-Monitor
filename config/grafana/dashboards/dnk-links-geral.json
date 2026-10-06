@@ -1,0 +1,607 @@
+{
+  "uid": "dnk-links-geral",
+  "title": "Dunker | Links — Visão geral",
+  "schemaVersion": 39,
+  "version": 1,
+  "style": "dark",
+  "tags": [
+    "Dunker",
+    "Links",
+    "Geral"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "Cliente",
+        "label": "Cliente",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": {
+          "query": "label_values(dnk:link_expected, Cliente)",
+          "refId": "VariableQuery"
+        },
+        "definition": "label_values(dnk:link_expected, Cliente)",
+        "refresh": 1,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "options": [],
+        "hide": 0,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "allValue": ".*"
+      },
+      {
+        "name": "Unidade",
+        "label": "Unidade",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": {
+          "query": "label_values(dnk:link_expected{Cliente=~\"$Cliente\"}, Unidade)",
+          "refId": "VariableQuery"
+        },
+        "definition": "label_values(dnk:link_expected{Cliente=~\"$Cliente\"}, Unidade)",
+        "refresh": 1,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "options": [],
+        "hide": 0,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "allValue": ".*"
+      },
+      {
+        "name": "Provedor",
+        "label": "Provedor",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": {
+          "query": "label_values(dnk:link_expected{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\"}, Provedor)",
+          "refId": "VariableQuery"
+        },
+        "definition": "label_values(dnk:link_expected{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\"}, Provedor)",
+        "refresh": 1,
+        "sort": 1,
+        "multi": true,
+        "includeAll": true,
+        "options": [],
+        "hide": 0,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "allValue": ".*"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Links • visão geral",
+      "type": "text",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 3
+      },
+      "description": "",
+      "options": {
+        "mode": "markdown",
+        "content": "**Um quadrado por link. Clique para abrir o RTT, a perda e o histórico daquele link.** Os filtros começam em Todos; links do mesmo cliente continuam separados.\n\n**Verde:** OK · **Amarelo:** atenção · **Vermelho:** grave · **Roxo:** sem resposta ou degradação contínua por 10 min · **Cinza:** sem dados"
+      }
+    },
+    {
+      "id": 2,
+      "title": "TOTAL DE LINKS",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 3,
+        "w": 4,
+        "h": 3
+      },
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "refId": "A",
+          "expr": "count(dnk:link_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",Provedor=~\"$Provedor\"}) or vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sem dados",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8AB8FF"
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 3,
+      "title": "OK",
+      "type": "stat",
+      "gridPos": {
+        "x": 4,
+        "y": 3,
+        "w": 4,
+        "h": 3
+      },
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "refId": "A",
+          "expr": "count(dnk:link_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",Provedor=~\"$Provedor\"} == 0) or vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sem dados",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#56A64B"
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 4,
+      "title": "ATENÇÃO",
+      "type": "stat",
+      "gridPos": {
+        "x": 8,
+        "y": 3,
+        "w": 4,
+        "h": 3
+      },
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "refId": "A",
+          "expr": "count(dnk:link_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",Provedor=~\"$Provedor\"} == 2) or vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sem dados",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#F2CC0C"
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 5,
+      "title": "GRAVE",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 3,
+        "w": 4,
+        "h": 3
+      },
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "refId": "A",
+          "expr": "count(dnk:link_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",Provedor=~\"$Provedor\"} == 3) or vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sem dados",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#E02F44"
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 6,
+      "title": "CRÍTICO",
+      "type": "stat",
+      "gridPos": {
+        "x": 16,
+        "y": 3,
+        "w": 4,
+        "h": 3
+      },
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "refId": "A",
+          "expr": "count(dnk:link_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",Provedor=~\"$Provedor\"} == 4) or vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sem dados",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#A352CC"
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 7,
+      "title": "SEM DADOS",
+      "type": "stat",
+      "gridPos": {
+        "x": 20,
+        "y": 3,
+        "w": 4,
+        "h": 3
+      },
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "refId": "A",
+          "expr": "count(dnk:link_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",Provedor=~\"$Provedor\"} == 1) or vector(0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Sem dados",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#8794AA"
+          },
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 8,
+      "title": "Estado dos links",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 24,
+        "h": 14
+      },
+      "description": "Uma série por verificação, sem agrupamento por cliente ou por IP. Cada cartão informa cliente, nome da verificação, unidade, provedor e destino. O clique usa o identificador exclusivo do link e abre seus detalhes.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "dnk-prometheus"
+          },
+          "refId": "A",
+          "expr": "dnk:link_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\",Provedor=~\"$Provedor\"}",
+          "legendFormat": "{{Cliente}} · {{link_label}}",
+          "instant": true,
+          "range": false,
+          "editorMode": "code"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "SEM DADOS",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#56A64B",
+                "value": null
+              },
+              {
+                "color": "#8794AA",
+                "value": 1
+              },
+              {
+                "color": "#F2CC0C",
+                "value": 2
+              },
+              {
+                "color": "#E02F44",
+                "value": 3
+              },
+              {
+                "color": "#A352CC",
+                "value": 4
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "OK",
+                  "color": "#56A64B",
+                  "index": 0
+                },
+                "1": {
+                  "text": "SEM DADOS",
+                  "color": "#8794AA",
+                  "index": 1
+                },
+                "2": {
+                  "text": "ATENÇÃO",
+                  "color": "#F2CC0C",
+                  "index": 2
+                },
+                "3": {
+                  "text": "GRAVE",
+                  "color": "#E02F44",
+                  "index": 3
+                },
+                "4": {
+                  "text": "CRÍTICO",
+                  "color": "#A352CC",
+                  "index": 4
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null+nan",
+                "result": {
+                  "text": "SEM DADOS",
+                  "color": "#8794AA"
+                }
+              }
+            }
+          ],
+          "links": [
+            {
+              "title": "Abrir detalhes deste link",
+              "url": "/d/dnk-links/cliente?var-Cliente=${__field.labels.Cliente:percentencode}&var-Unidade=${__field.labels.Unidade:percentencode}&var-Link=${__field.labels.link_key:percentencode}&${__url_time_range}",
+              "targetBlank": false,
+              "oneClick": true
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value_and_name",
+        "colorMode": "background_solid",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "text": {
+          "titleSize": 12,
+          "valueSize": 28
+        },
+        "wideLayout": false
+      }
+    }
+  ],
+  "links": [
+    {
+      "title": "Visão por cliente",
+      "type": "link",
+      "url": "/d/dnk-geral/clientes?var-Cliente=All&var-Unidade=All",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false
+    },
+    {
+      "title": "Cadastrar verificações",
+      "type": "link",
+      "url": "/a/dunker-integracoes-app/links",
+      "targetBlank": true
+    }
+  ],
+  "description": "Todos os links ICMP em uma única grade, com um cartão por verificação. Clique em um link para abrir somente seus detalhes no dashboard existente."
+}

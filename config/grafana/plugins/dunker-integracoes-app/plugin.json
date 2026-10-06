@@ -1,0 +1,61 @@
+{
+  "type": "app",
+  "name": "Dunker · Integrações",
+  "id": "dunker-integracoes-app",
+  "autoEnabled": true,
+  "info": {
+    "author": {
+      "name": "Dunker IT"
+    },
+    "description": "Configuração de links, SNMP, SharePoint e permissões usando a sessão Grafana.",
+    "keywords": [
+      "sharepoint",
+      "monitoramento",
+      "dunker"
+    ],
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "version": "1.4.3",
+    "updated": "2026-10-05"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=11.0.0",
+    "plugins": []
+  },
+  "includes": [
+    {
+      "type": "page",
+      "name": "Links e disponibilidade",
+      "path": "/a/dunker-integracoes-app/links",
+      "addToNav": true,
+      "defaultNav": true,
+      "role": "Viewer"
+    },
+    {
+      "type": "page",
+      "name": "Firewalls e SNMP",
+      "path": "/a/dunker-integracoes-app/snmp",
+      "addToNav": true,
+      "defaultNav": false,
+      "role": "Viewer"
+    },
+    {
+      "type": "page",
+      "name": "SharePoint",
+      "path": "/a/dunker-integracoes-app/sharepoint",
+      "addToNav": true,
+      "defaultNav": false,
+      "role": "Viewer"
+    },
+    {
+      "type": "page",
+      "name": "Permissões",
+      "path": "/a/dunker-integracoes-app/permissoes",
+      "addToNav": true,
+      "defaultNav": false,
+      "role": "Admin"
+    }
+  ]
+}

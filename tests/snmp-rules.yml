@@ -1,0 +1,133 @@
+rule_files:
+- ../config/prometheus/integracoes.yml
+evaluation_interval: 30s
+tests:
+- name: CPU/RAM não expostas não derrubam equipamento
+  interval: 30s
+  input_series:
+  - series: dnk_snmp_device_info{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW"}
+    values: 1+0x12
+  - series: up{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp",managed_by="dnk"}
+    values: 1+0x12
+  promql_expr_test:
+  - expr: dnk:firewall_state
+    eval_time: 5m
+    exp_samples:
+    - labels: dnk:firewall_state{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW"}
+      value: 0
+- name: Falha do módulo de saúde preserva banda
+  interval: 30s
+  input_series:
+  - series: dnk_snmp_device_info{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW"}
+    values: 1+0x12
+  - series: up{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp",managed_by="dnk"}
+    values: 1+0x12
+  - series: up{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp_health",managed_by="dnk"}
+    values: 0+0x12
+  promql_expr_test:
+  - expr: dnk:firewall_state
+    eval_time: 5m
+    exp_samples:
+    - labels: dnk:firewall_state{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW"}
+      value: 0
+- name: Falha de SNMP é crítica
+  interval: 30s
+  input_series:
+  - series: dnk_snmp_device_info{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW"}
+    values: 1+0x12
+  - series: up{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp",managed_by="dnk"}
+    values: 0+0x12
+  promql_expr_test:
+  - expr: dnk:firewall_state
+    eval_time: 5m
+    exp_samples:
+    - labels: dnk:firewall_state{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW"}
+      value: 4
+- name: CPU persistente acima de 95%
+  interval: 30s
+  input_series:
+  - series: dnk_snmp_device_info{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW"}
+    values: 1+0x12
+  - series: up{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp",managed_by="dnk"}
+    values: 1+0x12
+  - series: up{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp_health",managed_by="dnk"}
+    values: 1+0x12
+  - series: sonicCurrentCPUUtil{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp_health"}
+    values: 96+0x12
+  promql_expr_test:
+  - expr: dnk:firewall_state
+    eval_time: 5m
+    exp_samples:
+    - labels: dnk:firewall_state{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW"}
+      value: 3
+- name: WAN selecionada indisponível é grave
+  interval: 30s
+  input_series:
+  - series: dnk_snmp_device_info{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW"}
+    values: 1+0x12
+  - series: up{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp",managed_by="dnk"}
+    values: 1+0x12
+  - series: dnk_snmp_interface_selected{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",ifIndex="2"}
+    values: 1+0x12
+  - series: ifOperStatus{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp",managed_by="dnk",ifIndex="2"}
+    values: 2+0x12
+  promql_expr_test:
+  - expr: dnk:firewall_state
+    eval_time: 5m
+    exp_samples:
+    - labels: dnk:firewall_state{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW"}
+      value: 3
+- name: Interface não selecionada não afeta estado
+  interval: 30s
+  input_series:
+  - series: dnk_snmp_device_info{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW"}
+    values: 1+0x12
+  - series: up{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp",managed_by="dnk"}
+    values: 1+0x12
+  - series: dnk_snmp_interface_selected{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",ifIndex="1"}
+    values: 1+0x12
+  - series: ifOperStatus{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp",managed_by="dnk",ifIndex="2"}
+    values: 2+0x12
+  promql_expr_test:
+  - expr: dnk:firewall_state
+    eval_time: 5m
+    exp_samples:
+    - labels: dnk:firewall_state{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW"}
+      value: 0
+- name: Cadastro sem coleta fica sem dados
+  interval: 30s
+  input_series:
+  - series: dnk_snmp_device_info{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW"}
+    values: 1+0x12
+  promql_expr_test:
+  - expr: dnk:firewall_state
+    eval_time: 5m
+    exp_samples:
+    - labels: dnk:firewall_state{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW"}
+      value: 1
+- name: Banda 64-bit e percentual contratado
+  interval: 30s
+  input_series:
+  - series: dnk_snmp_device_info{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW"}
+    values: 1+0x12
+  - series: up{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp",managed_by="dnk"}
+    values: 1+0x12
+  - series: ifHCInOctets{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp",managed_by="dnk",ifIndex="2",ifName="X1"}
+    values: 0+7500x12
+  - series: ifInOctets{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp",managed_by="dnk",ifIndex="2",ifName="X1"}
+    values: 0+3750x12
+  - series: dnk_snmp_interface_selected{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",ifIndex="2"}
+    values: 1+0x12
+  - series: dnk_snmp_contracted_download_bits{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",ifIndex="2"}
+    values: 1000000+0x12
+  promql_expr_test:
+  - expr: dnk:snmp_in_selected_bps
+    eval_time: 5m
+    exp_samples:
+    - labels: dnk:snmp_in_selected_bps{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp",managed_by="dnk",ifIndex="2",ifName="X1"}
+      value: 2000
+  - expr: dnk:snmp_download_utilization_percent
+    eval_time: 5m
+    exp_samples:
+    - labels: dnk:snmp_download_utilization_percent{Cliente="Dunker",Unidade="SP",Provedor="Equipamento",instance="10.0.0.1",tipo="snmp",monitor_id="abc",monitor_name="FW",job="snmp",managed_by="dnk",ifIndex="2",ifName="X1"}
+      value: 0.2

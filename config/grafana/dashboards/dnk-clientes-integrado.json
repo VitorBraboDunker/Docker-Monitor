@@ -1,0 +1,189 @@
+{
+  "uid": "dnk-clientes-integrado",
+  "title": "Dunker | Clientes - Links e firewalls",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": [
+    "Dunker"
+  ],
+  "timezone": "browser",
+  "editable": true,
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "Cliente",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": "label_values(dnk_target_expected, Cliente)",
+        "definition": "label_values(dnk_target_expected, Cliente)",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "sort": 1
+      },
+      {
+        "name": "Unidade",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-prometheus"
+        },
+        "query": "label_values(dnk_target_expected{Cliente=~\"$Cliente\"}, Unidade)",
+        "definition": "label_values(dnk_target_expected{Cliente=~\"$Cliente\"}, Unidade)",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "sort": 1
+      }
+    ]
+  },
+  "links": [
+    {
+      "title": "Configurações externas",
+      "type": "link",
+      "url": "/a/dunker-integracoes-app/links",
+      "targetBlank": true
+    },
+    {
+      "title": "Painéis Dunker",
+      "type": "dashboards",
+      "tags": [
+        "Dunker"
+      ],
+      "asDropdown": true,
+      "includeVars": true,
+      "keepTime": true
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Clientes · clique para detalhes",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 12
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (Cliente) (dnk:client_component_state{Cliente=~\"$Cliente\",Unidade=~\"$Unidade\"})",
+          "legendFormat": "{{Cliente}}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 12
+          },
+          "noValue": "Não exposta",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "gray",
+                "value": 1
+              },
+              {
+                "color": "yellow",
+                "value": 2
+              },
+              {
+                "color": "orange",
+                "value": 3
+              },
+              {
+                "color": "red",
+                "value": 4
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "OK"
+                },
+                "1": {
+                  "text": "SEM DADOS"
+                },
+                "2": {
+                  "text": "ATENÇÃO"
+                },
+                "3": {
+                  "text": "GRAVE"
+                },
+                "4": {
+                  "text": "CRÍTICO"
+                }
+              }
+            }
+          ],
+          "links": [
+            {
+              "title": "Detalhes do cliente",
+              "url": "/d/dnk-cliente-integrado?var-Cliente=${__field.labels.Cliente:percentencode}",
+              "targetBlank": false
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": true
+        },
+        "colorMode": "background",
+        "textMode": "value_and_name",
+        "graphMode": "none",
+        "orientation": "auto"
+      }
+    }
+  ]
+}

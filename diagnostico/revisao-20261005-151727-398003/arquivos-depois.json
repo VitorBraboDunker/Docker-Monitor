@@ -1,0 +1,576 @@
+{
+  "pacote": "1.4.0",
+  "etapa": "depois",
+  "horario_utc": "2026-10-05T18:19:05.019383+00:00",
+  "pasta": "/projeto",
+  "nome_compose": "dunker-separado",
+  "servicos_definidos": [
+    "caddy",
+    "grafana",
+    "prometheus",
+    "alertmanager",
+    "blackbox",
+    "snmp",
+    "ping",
+    "loki",
+    "alloy",
+    "admin",
+    "sharepoint",
+    "sharepoint-prometheus"
+  ],
+  "arquivos": [
+    {
+      "arquivo": ".dockerignore",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": ".env.example",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": ".gitignore",
+      "estado": "existente / diferente",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "ATUALIZAR-PROJETO.ps1",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "Dockerfile.separado",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "INICIAR-PROJETO.ps1",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "PARAR-PROJETO.ps1",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "README.md",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "VERIFICAR-PROJETO.ps1",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "VERSION",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "atualizar-projeto.sh",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "compose.separado.yaml",
+      "estado": "existente / diferente",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/admin/index.html",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/admin/sharepoint-ui.js",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/admin/sharepoint.css",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/admin/sharepoint.html",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/alertmanager.yml",
+      "estado": "igual ao pacote",
+      "acao_prevista": "seed"
+    },
+    {
+      "arquivo": "config/alloy/central.alloy",
+      "estado": "igual ao pacote",
+      "acao_prevista": "seed"
+    },
+    {
+      "arquivo": "config/blackbox.yml",
+      "estado": "igual ao pacote",
+      "acao_prevista": "seed"
+    },
+    {
+      "arquivo": "config/caddy/Caddyfile.example",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/grafana/dashboards/dnk-cliente-integrado.json",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/grafana/dashboards/dnk-clientes-integrado.json",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/grafana/dashboards/dnk-firewall-detalhes.json",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/grafana/dashboards/dnk-firewalls.json",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/grafana/dashboards/dnk-geral.json",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/grafana/dashboards/dnk-links-geral.json",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/grafana/dashboards/dnk-links.json",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/grafana/dashboards/dnk-logs.json",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/grafana/dashboards/dnk-servidores.json",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/grafana/dashboards/dnk-sharepoint-detalhes.json",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/grafana/dashboards/dnk-sharepoint-geral.json",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/grafana/plugins/dunker-integracoes-app/img/logo.svg",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/grafana/plugins/dunker-integracoes-app/module.js",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/grafana/plugins/dunker-integracoes-app/plugin.json",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/grafana/provisioning/dashboards/dashboards.yml",
+      "estado": "igual ao pacote",
+      "acao_prevista": "seed"
+    },
+    {
+      "arquivo": "config/grafana/provisioning/datasources/datasources.yml",
+      "estado": "igual ao pacote",
+      "acao_prevista": "seed"
+    },
+    {
+      "arquivo": "config/grafana/provisioning/datasources/sharepoint.yml",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/integracoes/modules.json",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/integracoes/snmp-managed.example",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/inventory.json",
+      "estado": "existente / diferente",
+      "acao_prevista": "seed"
+    },
+    {
+      "arquivo": "config/loki-separado.yml",
+      "estado": "igual ao pacote",
+      "acao_prevista": "seed"
+    },
+    {
+      "arquivo": "config/prometheus/rules.yml",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/prometheus/separado.yml",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/secrets/credentials.json.example",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/sharepoint/prometheus.yml",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/sharepoint/rules.yml",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/snmp-v3.yml.example",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/snmp.yml.example",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/targets/http.json",
+      "estado": "igual ao pacote",
+      "acao_prevista": "seed"
+    },
+    {
+      "arquivo": "config/targets/icmp.json",
+      "estado": "existente / diferente",
+      "acao_prevista": "seed"
+    },
+    {
+      "arquivo": "config/targets/inventory.json",
+      "estado": "existente / diferente",
+      "acao_prevista": "seed"
+    },
+    {
+      "arquivo": "config/targets/snmp.json",
+      "estado": "existente / diferente",
+      "acao_prevista": "seed"
+    },
+    {
+      "arquivo": "config/targets/tcp.json",
+      "estado": "igual ao pacote",
+      "acao_prevista": "seed"
+    },
+    {
+      "arquivo": "docs/INTEGRACOES-SNMP.md",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "docs/SHAREPOINT.md",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "docs/VALIDACAO.md",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "iniciar-projeto.sh",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "inventario-exemplo.csv",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "inventario.csv",
+      "estado": "existente / diferente",
+      "acao_prevista": "seed"
+    },
+    {
+      "arquivo": "parar-projeto.sh",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "runtime/admin_monitor.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "runtime/health.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "runtime/monitor_probes.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "runtime/ping_exporter.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "runtime/sharepoint_activate.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "runtime/sharepoint_collector.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "runtime/sharepoint_proxy.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "runtime/snmp_manager.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/build-plugin.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/docker_audit.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/gerar-agente.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/importar-inventario.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/instalar-docker-ubuntu.sh",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/project_manager.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/PyYAML-LICENSE.txt",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/__init__.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/composer.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/constructor.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/cyaml.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/dumper.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/emitter.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/error.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/events.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/loader.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/nodes.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/parser.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/reader.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/representer.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/resolver.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/scanner.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/serializer.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/vendor/yaml/tokens.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "scripts/windows-common.ps1",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "tests/snmp-rules.yml",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "tests/snmp_fixture.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "tests/test_admin_monitor.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "tests/test_docker_audit.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "tests/test_monitor_probes.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "tests/test_plugin.js",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "tests/test_project_manager.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "tests/test_proxy.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "tests/test_sharepoint.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "tests/test_snmp_integrations.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "runtime/grafana_access.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "config/admin/access-ui.js",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "docs/PERMISSOES-GRAFANA.md",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "tests/test_grafana_access.py",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    },
+    {
+      "arquivo": "tests/test_native_ui.js",
+      "estado": "igual ao pacote",
+      "acao_prevista": "managed"
+    }
+  ],
+  "inventario": {
+    "verificacoes": 19,
+    "equipamentos_snmp": 0,
+    "integracoes_sharepoint": 0
+  },
+  "arquivos_de_credenciais_presentes": {
+    "grafana_admin_password": true,
+    "grafana_secret_key": true,
+    "ingest_password": true,
+    "snmp_community": true
+  },
+  "rota_monitoramento": true,
+  "observacao": "Inspeção de arquivos. O relatório Docker separado contém containers e caminhos reais. Não inclui senhas nem conteúdo do inventário."
+}

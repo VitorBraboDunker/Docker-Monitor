@@ -2,15 +2,19 @@ import sys,unittest,tempfile,json,threading,urllib.request,urllib.error,base64
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'runtime'))
 import admin_monitor as a,ping_exporter as p
+from unittest.mock import patch
+import grafana_access as g
 class Checks(unittest.TestCase):
  def test_crud_and_auth(self):
   with tempfile.TemporaryDirectory() as tmp:
    a.DATA_DIR=Path(tmp);a.INVENTORY=a.DATA_DIR/'inventory.json';a.ICMP_TARGETS=a.DATA_DIR/'icmp.json';a.PASSWORD_FILE=a.DATA_DIR/'password';a.PASSWORD_FILE.write_text('test-only');a.persist([])
    server=a.http.server.ThreadingHTTPServer(('127.0.0.1',0),a.Handler);thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start();base=f'http://127.0.0.1:{server.server_port}'
-   auth='Basic '+base64.b64encode(b'admin:test-only').decode()
+   auth='grafana_session=test-only'
+   identity=patch.object(g,'identity',side_effect=lambda headers: {'id':1,'login':'admin','role':'Admin','org_id':1,'cookie':'test-only'} if headers.get('Cookie') else (_ for _ in ()).throw(g.AccessError('Login necessário',401)))
+   policy=patch.object(g,'POLICY_FILE',Path(tmp)/'policy.json');identity.start();policy.start()
    def req(path,method='GET',body=None,authorized=True):
-    headers={'Content-Type':'application/json'}
-    if authorized:headers['Authorization']=auth
+    headers={'Content-Type':'application/json','Origin':base}
+    if authorized:headers['Cookie']=auth
     with urllib.request.urlopen(urllib.request.Request(base+path,data=json.dumps(body).encode() if body is not None else None,headers=headers,method=method)) as r:return json.load(r)
    try:
     with self.assertRaises(urllib.error.HTTPError) as error:req('/api/monitors',authorized=False)
@@ -21,7 +25,7 @@ class Checks(unittest.TestCase):
     with self.assertRaises(urllib.error.HTTPError):req('/api/monitors','POST',dict(row,instance='bad'))
     req('/api/monitors/'+row['id'],'PUT',{'enabled':False});self.assertEqual(json.loads(a.ICMP_TARGETS.read_text()),[])
     req('/api/monitors/'+row['id'],'DELETE');self.assertEqual(req('/api/monitors'),[])
-   finally:server.shutdown();server.server_close();thread.join()
+   finally:server.shutdown();server.server_close();thread.join();identity.stop();policy.stop()
  def test_icmp_reply_validation(self):
   import struct
   nonce=b'test';packet=struct.pack('!BBHHH',0,0,0,42,1)+nonce

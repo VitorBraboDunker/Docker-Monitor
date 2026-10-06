@@ -1,0 +1,481 @@
+{
+  "uid": "dnk-sharepoint-geral",
+  "title": "Dunker · SharePoint · Clientes",
+  "schemaVersion": 39,
+  "version": 1,
+  "tags": [
+    "Dunker",
+    "SharePoint",
+    "Microsoft 365"
+  ],
+  "timezone": "browser",
+  "refresh": "5m",
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "5m",
+      "15m",
+      "1h"
+    ],
+    "time_options": [
+      "7d",
+      "30d",
+      "90d",
+      "180d",
+      "365d"
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "Cliente",
+        "label": "Cliente",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "dnk-sharepoint"
+        },
+        "query": {
+          "query": "label_values(dnk_sharepoint_enabled, Cliente)",
+          "refId": "Clientes"
+        },
+        "definition": "label_values(dnk_sharepoint_enabled, Cliente)",
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "sort": 1,
+        "options": []
+      }
+    ]
+  },
+  "links": [
+    {
+      "title": "Configurar SharePoint",
+      "type": "link",
+      "url": "/a/dunker-integracoes-app/sharepoint",
+      "targetBlank": false
+    },
+    {
+      "title": "Central de integrações",
+      "type": "link",
+      "url": "/a/dunker-integracoes-app/sharepoint",
+      "targetBlank": false
+    },
+    {
+      "title": "Visão geral",
+      "type": "link",
+      "url": "/d/dnk-sharepoint-geral",
+      "includeVars": true
+    },
+    {
+      "title": "Detalhes",
+      "type": "link",
+      "url": "/d/dnk-sharepoint-detalhes",
+      "includeVars": true
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Integrações ativas",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-sharepoint"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(dnk_sharepoint_enabled{Cliente=~\"$Cliente\"} == 1)",
+          "legendFormat": "{{Cliente}}",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 2,
+      "title": "Consumo total dos relatórios",
+      "type": "stat",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-sharepoint"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(dnk_sharepoint_tenant_used_bytes{Cliente=~\"$Cliente\"})",
+          "legendFormat": "{{Cliente}}",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 3,
+      "title": "Capacidade cadastrada (manual)",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-sharepoint"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(dnk_sharepoint_capacity_bytes{Cliente=~\"$Cliente\"} > 0)",
+          "legendFormat": "{{Cliente}}",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Integrações com dados indisponíveis",
+      "type": "stat",
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-sharepoint"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum((dnk_sharepoint_state{Cliente=~\"$Cliente\"} == bool 4))",
+          "legendFormat": "{{Cliente}}",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center"
+      }
+    },
+    {
+      "id": 5,
+      "title": "$Cliente",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-sharepoint"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by (Cliente) (dnk_sharepoint_state{Cliente=~\"$Cliente\"} != 5) or max by (Cliente) (dnk_sharepoint_state{Cliente=~\"$Cliente\"})",
+          "legendFormat": "{{Cliente}}",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "OK",
+                  "color": "green",
+                  "index": 0
+                },
+                "1": {
+                  "text": "Atenção",
+                  "color": "yellow",
+                  "index": 1
+                },
+                "2": {
+                  "text": "Crítico",
+                  "color": "orange",
+                  "index": 2
+                },
+                "3": {
+                  "text": "Emergência",
+                  "color": "red",
+                  "index": 3
+                },
+                "4": {
+                  "text": "Dados indisponíveis",
+                  "color": "#808b9b",
+                  "index": 4
+                },
+                "5": {
+                  "text": "Capacidade não informada",
+                  "color": "#5794f2",
+                  "index": 5
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "links": [
+            {
+              "title": "Detalhes do SharePoint",
+              "url": "/d/dnk-sharepoint-detalhes?var-Cliente=${__field.labels.Cliente:percentencode}",
+              "targetBlank": false
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "textMode": "value",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center"
+      },
+      "repeat": "Cliente",
+      "repeatDirection": "h",
+      "maxPerRow": 4
+    },
+    {
+      "id": 6,
+      "title": "Evolução do consumo por cliente",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 24,
+        "h": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "dnk-sharepoint"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (Cliente) (dnk_sharepoint_tenant_used_bytes{Cliente=~\"$Cliente\"})",
+          "legendFormat": "{{Cliente}}",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "bytes",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    }
+  ]
+}

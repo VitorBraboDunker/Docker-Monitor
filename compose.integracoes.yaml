@@ -1,0 +1,22 @@
+# Complemento: use sempre junto de compose.separado.yaml.
+# Mantém as imagens 1.2.0 publicadas; código/UI novos são montados do projeto.
+services:
+  admin:
+    environment:
+      DNK_ADMIN_PAGE: /etc/dunker/admin/index.html
+      DNK_SNMP_PRIVATE: /etc/dunker/integracoes/private
+      SNMP_URL: http://snmp:9116
+    volumes:
+      - ./runtime/admin_monitor.py:/opt/dunker/admin_monitor.py:ro
+      - ./runtime/snmp_manager.py:/opt/dunker/snmp_manager.py:ro
+      - ./config/integracoes/private:/etc/dunker/integracoes/private:rw
+  ping:
+    volumes:
+      - ./runtime/ping_exporter.py:/opt/dunker/ping_exporter.py:ro
+  snmp:
+    # Credenciais locais 0600; nenhuma capability ou porta publicada.
+    user: '0'
+    cap_drop: [ALL]
+    command:
+      - --config.file=/etc/dunker/snmp.yml
+      - --config.file=/etc/dunker/integracoes/private/snmp-managed.yml
